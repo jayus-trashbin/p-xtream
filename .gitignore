@@ -36,3 +36,6 @@ Thumbs.db
 .metrics*.json
 generated/
 /packages/userscript/dist/
+
+# Antigravity Kit
+.agent/
