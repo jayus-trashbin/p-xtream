@@ -1,0 +1,18 @@
+[phases.setup]
+commands = [
+  "npx prisma generate",
+  "npx prisma migrate deploy"
+]
+
+[phases.install]
+commands = [
+  "npm install"
+]
+
+[phases.build]
+commands = [
+  "npm run build"
+]
+
+[start]
+cmd = "source .env && node .output/server/index.mjs"

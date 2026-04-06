@@ -1,0 +1,17 @@
+{
+  "name": "@p-stream/userscript",
+  "version": "1.0.3",
+  "private": true,
+  "description": "Userscript replacement for the P-Stream browser extension",
+  "license": "MIT",
+  "scripts": {
+    "build": "node scripts/banner.js | cat - /dev/null > /dev/null && esbuild src/index.ts --bundle --outfile=dist/p-stream.user.js --banner:js=\"$(node scripts/banner.js)\" --platform=browser --target=es2020",
+    "dev": "esbuild src/index.ts --bundle --watch --outfile=dist/p-stream.user.js --platform=browser --target=es2020",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/greasemonkey": "^4.0.4",
+    "esbuild": "^0.21.5",
+    "typescript": "^5.4.5"
+  }
+}

@@ -1,0 +1,62 @@
+# ── P-Stream · .dockerignore ──────────────────────────────────────────────────
+# Excludes files/dirs that should NOT be sent to Docker build context.
+# This keeps the build context small and build times fast.
+# ──────────────────────────────────────────────────────────────────────────────
+
+# Dependencies (rebuilt inside Docker)
+**/node_modules
+
+# Build outputs (rebuilt inside Docker)
+**/.output
+**/.nitro
+**/dist
+**/build
+**/.build
+
+# pnpm virtual store (rebuilt inside Docker)
+.pnpm-store
+
+# Development & editor files
+**/.env
+**/.env.*
+!**/.env.example
+.editorconfig
+.vscode
+.idea
+*.code-workspace
+
+# Version control
+.git
+.gitignore
+.gitattributes
+.github
+
+# Documentation & spec files (not needed at runtime)
+*.md
+PSTREAM_*.md
+LICENSE*
+
+# Test files
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+**/coverage
+**/__tests__
+
+# OS junk
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Turbo
+.turbo
+
+# Local scripts / dev tools
+docker/docker-compose*.yml

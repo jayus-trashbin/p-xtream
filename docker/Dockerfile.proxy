@@ -1,0 +1,47 @@
+# ── P-Stream Proxy — Multi-stage monorepo Dockerfile ──────────────────────────
+# Build context: repo root (../ from docker/)
+# Usage: docker build -f docker/Dockerfile.proxy -t p-stream-proxy .
+# ──────────────────────────────────────────────────────────────────────────────
+
+# ── Stage 1: Base ─────────────────────────────────────────────────────────────
+FROM node:20-alpine AS base
+RUN npm install -g pnpm@9
+RUN apk add --no-cache curl
+
+# ── Stage 2: Deps ─────────────────────────────────────────────────────────────
+FROM base AS deps
+WORKDIR /app
+
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+COPY apps/proxy/package.json apps/proxy/
+
+RUN pnpm install --frozen-lockfile --filter @p-stream/proxy...
+
+# ── Stage 3: Build ────────────────────────────────────────────────────────────
+FROM base AS build
+WORKDIR /app
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/proxy/node_modules ./apps/proxy/node_modules 2>/dev/null || true
+
+COPY apps/proxy ./apps/proxy
+
+WORKDIR /app/apps/proxy
+RUN pnpm build
+
+# ── Stage 4: Runtime ──────────────────────────────────────────────────────────
+FROM node:20-alpine AS runtime
+WORKDIR /app
+
+RUN apk add --no-cache curl
+
+ENV NODE_ENV=production
+
+COPY --from=build /app/apps/proxy/.output ./.output
+
+EXPOSE 3001
+
+HEALTHCHECK --interval=10s --timeout=5s --start-period=5s --retries=3 \
+  CMD wget -qO- http://localhost:3001/health || exit 1
+
+CMD ["node", ".output/server/index.mjs"]

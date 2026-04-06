@@ -1,0 +1,19 @@
+{
+  "name": "@p-stream/shared",
+  "version": "0.0.1",
+  "description": "Shared types, Zod schemas, and constants for the P-Stream ecosystem",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./types": "./src/types/index.ts"
+  },
+  "dependencies": {
+    "zod": "^3.25.28"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

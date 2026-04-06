@@ -1,0 +1,30 @@
+import { prisma } from '#imports';
+
+export default defineEventHandler(async event => {
+  const id = event.context.params?.id;
+  const listInfo = await prisma.lists.findUnique({
+    relationLoadStrategy: 'join',
+    where: {
+      id: id,
+    },
+    include: {
+      list_items: true,
+    },
+  });
+
+  if (!listInfo) {
+    throw createError({
+      statusCode: 404,
+      message: 'List not found',
+    });
+  }
+
+  if (!listInfo.public) {
+    throw createError({
+      statusCode: 403,
+      message: 'List is not public',
+    });
+  }
+
+  return listInfo;
+});

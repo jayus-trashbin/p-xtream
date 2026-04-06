@@ -1,0 +1,65 @@
+# ── P-Stream Backend — Multi-stage monorepo Dockerfile ────────────────────────
+# Build context: repo root (../ from docker/)
+# Usage: docker build -f docker/Dockerfile.backend -t p-stream-backend .
+# ──────────────────────────────────────────────────────────────────────────────
+
+# ── Stage 1: Base image with pnpm ─────────────────────────────────────────────
+FROM node:20-alpine AS base
+RUN npm install -g pnpm@9
+# Install openssl (required by Prisma on Alpine) + curl (healthcheck)
+RUN apk add --no-cache curl openssl
+
+# ── Stage 2: Install dependencies (leverages Docker layer cache) ──────────────
+FROM base AS deps
+WORKDIR /app
+
+# Copy only manifests first — pnpm install won't re-run unless these change
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+COPY apps/backend/package.json apps/backend/
+COPY packages/shared/package.json packages/shared/
+
+# Install only what backend needs (and its local deps)
+RUN pnpm install --frozen-lockfile --filter @p-stream/backend...
+
+# ── Stage 3: Build  ───────────────────────────────────────────────────────────
+FROM base AS build
+WORKDIR /app
+
+# Copy installed node_modules (monorepo root + per-package)
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps/backend/node_modules ./apps/backend/node_modules 2>/dev/null || true
+COPY --from=deps /app/packages/shared/node_modules ./packages/shared/node_modules 2>/dev/null || true
+
+# Copy source (after deps — avoids invalidating dep layer on code changes)
+COPY apps/backend ./apps/backend
+COPY packages/shared ./packages/shared
+
+# Build-time ARG for DATABASE_URL (placeholder — Prisma generate only needs schema)
+ARG DATABASE_URL=postgresql://placeholder:placeholder@localhost:5432/pstream
+ARG CRYPTO_SECRET
+ARG TMDB_API_KEY
+
+WORKDIR /app/apps/backend
+# Generate Prisma client (uses build-time DATABASE_URL for schema parsing only)
+RUN DATABASE_URL=${DATABASE_URL} npx prisma generate
+# Compile Nitro server bundle → .output/
+RUN pnpm build
+
+# ── Stage 4: Minimal runtime image ────────────────────────────────────────────
+FROM node:20-alpine AS runtime
+WORKDIR /app
+
+# Runtime deps: openssl (Prisma), curl (healthcheck)
+RUN apk add --no-cache curl openssl && npm install -g prisma@latest
+
+ENV NODE_ENV=production
+
+# Copy only the production output and Prisma files
+COPY --from=build /app/apps/backend/.output ./.output
+COPY --from=build /app/apps/backend/prisma ./prisma
+
+EXPOSE 3000
+
+# Run migrations then start server.
+# ENV vars (DATABASE_URL, CRYPTO_SECRET, etc.) must be injected at runtime.
+CMD ["sh", "-c", "prisma migrate deploy && node .output/server/index.mjs"]

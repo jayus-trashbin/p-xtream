@@ -1,0 +1,73 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "group:allNonMajor",
+    ":semanticCommits",
+    ":dependencyDashboard"
+  ],
+  "schedule": ["before 6am on Monday"],
+  "timezone": "UTC",
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2,
+  "labels": ["dependencies"],
+  "assignees": [],
+  "reviewers": [],
+  "packageRules": [
+    {
+      "description": "Group all non-major updates into a single PR",
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "All non-major dependencies",
+      "groupSlug": "all-minor-patch"
+    },
+    {
+      "description": "Major updates: one PR per package (manual review required)",
+      "matchUpdateTypes": ["major"],
+      "groupName": null,
+      "prBodyNotes": [
+        "⚠️ **Major version bump** — please review breaking changes carefully before merging."
+      ]
+    },
+    {
+      "description": "Automerge patch-level devDependencies (low risk)",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["patch"],
+      "automerge": true,
+      "automergeType": "pr",
+      "platformAutomerge": true
+    },
+    {
+      "description": "Pin Docker base image digests",
+      "matchManagers": ["dockerfile"],
+      "pinDigests": true
+    },
+    {
+      "description": "Weekly schedule for Docker/GitHub Actions updates",
+      "matchManagers": ["github-actions", "dockerfile"],
+      "schedule": ["before 6am on Monday"]
+    },
+    {
+      "description": "Prisma Client — must be kept in sync with prisma CLI",
+      "matchPackageNames": ["@prisma/client", "prisma"],
+      "groupName": "Prisma",
+      "automerge": false
+    },
+    {
+      "description": "Vite ecosystem — group together to avoid incompatibilities",
+      "matchPackagePatterns": ["^vite", "^@vitejs/"],
+      "groupName": "Vite ecosystem",
+      "automerge": false
+    },
+    {
+      "description": "React + React DOM — always together",
+      "matchPackageNames": ["react", "react-dom", "@types/react", "@types/react-dom"],
+      "groupName": "React",
+      "automerge": false
+    }
+  ],
+  "ignorePaths": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/.output/**"
+  ]
+}

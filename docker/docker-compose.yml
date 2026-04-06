@@ -1,0 +1,120 @@
+# — P-Stream · Full Stack Docker Compose ——————————————————————————————————————
+# Usage:
+#   cp .env.example .env && docker compose up -d
+#
+# Services:
+#   postgres  → port 5432 (internal only)
+#   redis     → port 6379 (internal only)
+#   backend   → http://localhost:3000
+#   proxy     → http://localhost:3001
+#   web       → http://localhost:80
+# ——————————————————————————————————————————————————————————————————————————————
+
+services:
+  # ── Database ──────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: pstream
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    # Postgres is only accessible to backend — not exposed to host by default.
+    # Uncomment to expose for local debugging:
+    # ports:
+    #   - "5432:5432"
+
+  # ── Cache / Pub-Sub ───────────────────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    # Redis is only accessible to backend — not exposed to host by default.
+    # ports:
+    #   - "6379:6379"
+
+  # ── Backend (Nitro / Nuxt H3) ─────────────────────────────────────────────
+  backend:
+    image: ghcr.io/${GITHUB_REPOSITORY:-p-stream/p-stream}/backend:${IMAGE_TAG:-latest}
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.backend
+    restart: unless-stopped
+    env_file: ../.env
+    environment:
+      # These override .env to use internal Docker network hostnames
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/pstream
+      REDIS_URL: redis://redis:6379
+      NODE_ENV: production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # ── CORS / M3U8 Proxy (Nitro) ─────────────────────────────────────────────
+  proxy:
+    image: ghcr.io/${GITHUB_REPOSITORY:-p-stream/p-stream}/proxy:${IMAGE_TAG:-latest}
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.proxy
+    restart: unless-stopped
+    env_file: ../.env
+    environment:
+      NODE_ENV: production
+      # Override proxy LRU cache size via env (optional)
+      # CACHE_MAX_MEMORY_MB: 512
+    ports:
+      - "3001:3001"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  # ── Frontend (Vite → nginx) ───────────────────────────────────────────────
+  web:
+    image: ghcr.io/${GITHUB_REPOSITORY:-p-stream/p-stream}/web:${IMAGE_TAG:-latest}
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.web
+      args:
+        VITE_BACKEND_URL: ${VITE_BACKEND_URL:-http://localhost:3000}
+        VITE_PROXY_URL: ${VITE_PROXY_URL:-http://localhost:3001}
+        VITE_M3U8_PROXY_URL: ${VITE_M3U8_PROXY_URL:-http://localhost:3001}
+        VITE_TMDB_API_KEY: ${VITE_TMDB_API_KEY:-}
+        VITE_TMDB_READ_API_KEY: ${VITE_TMDB_READ_API_KEY:-}
+        VITE_PWA_ENABLED: ${VITE_PWA_ENABLED:-true}
+        VITE_ALLOW_AUTOPLAY: ${VITE_ALLOW_AUTOPLAY:-false}
+    restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
+      proxy:
+        condition: service_started
+    ports:
+      - "80:80"
+
+# ── Persistent Volumes ────────────────────────────────────────────────────────
+volumes:
+  postgres-data:
+    driver: local
