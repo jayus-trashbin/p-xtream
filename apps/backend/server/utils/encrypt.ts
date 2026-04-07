@@ -18,7 +18,7 @@ function getKey(): Uint8Array {
  * Encrypts a plaintext string using AES-256-GCM.
  * Returns a compact string: `hex(nonce):hex(ciphertext+tag)`
  */
-export async function encryptToken(plaintext: string): Promise<string> {
+export function encryptToken(plaintext: string): string {
   const key = getKey();
   const nonce = randomBytes(12); // 96-bit nonce for GCM
   const cipher = gcm(key, nonce);

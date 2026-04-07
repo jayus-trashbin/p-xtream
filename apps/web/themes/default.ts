@@ -1,13 +1,13 @@
 const tokens = {
   black: {
-    c50: "#000000",
-    c75: "#030303",
-    c80: "#080808",
-    c100: "#0d0d0d",
-    c125: "#141414",
-    c150: "#1a1a1a",
-    c200: "#262626",
-    c250: "#333333",
+    c50: "#050505",
+    c75: "#09090b", // Core background
+    c80: "#0c0c0f", // Elevated surface 1
+    c100: "#141418", // Elevated surface 2
+    c125: "#1c1c21", // Elevated surface 3
+    c150: "#232329", // Elevated surface 4
+    c200: "#2d2d34",
+    c250: "#36363d",
   },
   white: "#FFFFFF", // General white color
   semantic: {

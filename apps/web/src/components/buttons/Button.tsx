@@ -54,15 +54,17 @@ export function Button(props: Props) {
     colorClasses =
       "bg-buttons-danger hover:bg-buttons-dangerHover text-white gap-2";
 
+  const isDisabled = props.disabled || props.loading;
+
   let classes = classNames(
     "tabbable cursor-pointer inline-flex items-center justify-center rounded-lg font-medium transition-[transform,background-color] duration-100 active:scale-105 md:px-8",
     props.padding ?? "px-4 py-3",
     props.className,
     colorClasses,
-    props.disabled ? "!cursor-not-allowed bg-opacity-60 text-opacity-60" : null,
+    isDisabled ? "!cursor-not-allowed bg-opacity-60 text-opacity-60" : null,
   );
 
-  if (props.disabled)
+  if (isDisabled)
     classes = classes
       .split(" ")
       .filter(

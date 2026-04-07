@@ -46,3 +46,6 @@ export function cleanupRateLimitStore(): void {
     if (record.resetAt < now) attempts.delete(key);
   }
 }
+
+// Automatically cleanup every 60 seconds
+setInterval(cleanupRateLimitStore, 60000).unref();

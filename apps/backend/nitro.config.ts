@@ -15,7 +15,9 @@ export default defineNitroConfig({
     // Weekly cron jobs (Sunday midnight)
     '0 0 * * 0': ['jobs:clear-metrics:weekly'],
     // Monthly cron jobs (1st of month at midnight)
-    '0 0 1 * *': ['jobs:clear-metrics:monthly']
+    '0 0 1 * *': ['jobs:clear-metrics:monthly'],
+    // Hourly cron jobs
+    '0 * * * *': ['jobs:clear-challenges'],
   },
   runtimeConfig: {
     public: {

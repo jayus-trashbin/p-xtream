@@ -19,6 +19,10 @@ export function getRedis(): Redis | null {
     redis.on('error', (err) => {
       console.error('[Redis] Connection error:', err.message);
     });
+
+    redis.connect().catch(() => {
+      console.warn('[Redis] Failed to connect on startup. Callers will handle failures gracefully.');
+    });
   }
 
   return redis;

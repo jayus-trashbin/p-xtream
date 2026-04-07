@@ -21,6 +21,8 @@ export async function signJwt(payload: JwtPayload): Promise<string> {
   return new SignJWT(payload as Record<string, unknown>)
     .setProtectedHeader({ alg: ALG })
     .setIssuedAt()
+    .setIssuer('p-stream')
+    .setAudience('p-stream-api')
     .setExpirationTime('21d')
     .sign(getSecret());
 }
@@ -31,7 +33,10 @@ export async function signJwt(payload: JwtPayload): Promise<string> {
  */
 export async function verifyJwt(token: string): Promise<JwtPayload | null> {
   try {
-    const { payload } = await jwtVerify(token, getSecret());
+    const { payload } = await jwtVerify(token, getSecret(), {
+      issuer: 'p-stream',
+      audience: 'p-stream-api',
+    });
     return payload as unknown as JwtPayload;
   } catch {
     return null;

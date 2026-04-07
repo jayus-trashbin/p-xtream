@@ -24,3 +24,11 @@ if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma;
   globalForPrisma.pool = pool;
 }
+
+const nitroApp = useNitroApp();
+nitroApp.hooks.hook('close', async () => {
+  console.log('[Prisma] Closing connections gracefully...');
+  await prisma.$disconnect();
+  await pool.end();
+  console.log('[Prisma] Connections closed.');
+});

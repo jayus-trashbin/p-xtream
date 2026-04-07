@@ -1,12 +1,12 @@
-@import url("https://fonts.googleapis.com/css2?family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=PT+Serif:ital,wght@0,400;0,700;1,400;1,700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 html,
 body {
-  font-family: "Lato", sans-serif !important;
-  @apply bg-background-main !important;
+  font-family: "Inter", sans-serif;
+  @apply bg-background-main;
   @apply font-main text-type-text;
   min-height: 100vh;
   min-height: 100dvh;
@@ -19,7 +19,7 @@ body {
   .theme-transition * {
     transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;
     transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-    transition-duration: 300ms;
+    transition-duration: 200ms;
   }
 }
 
@@ -268,8 +268,9 @@ input[type="range"].styled-slider.slider-progress::-ms-fill-lower {
 }
 
 .tabbable:focus-visible {
-  outline: 2px solid theme("colors.themePreview.primary");
-  box-shadow: 0 0 10px theme("colors.themePreview.secondary");
+  outline: 2px solid #a78bfa; /* bright purple/indigo */
+  outline-offset: 2px;
+  box-shadow: 0 0 15px rgba(167, 139, 250, 0.4);
 }
 
 [dir="rtl"] .transform {
@@ -399,16 +400,19 @@ input[type="range"].styled-slider.slider-progress::-ms-fill-lower {
 
 .bookmark-button {
   opacity: 0;
-  transition: opacity 0.3s;
+  transform: translateY(5px);
+  transition: opacity 0.25s ease-out, transform 0.25s ease-out;
 }
 
 .group:hover .bookmark-button {
   opacity: 1;
+  transform: translateY(0);
 }
 
 @media (max-width: 1024px) {
   .group:hover .bookmark-button {
     opacity: 0;
+    transform: translateY(5px);
   }
 }
 

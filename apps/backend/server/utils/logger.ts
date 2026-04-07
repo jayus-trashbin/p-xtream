@@ -15,6 +15,8 @@ interface Logger {
 function createLogger(scope: string): Logger {
   const log = (level: LogLevel, message: string, context?: LogContext) => {
     const isDev = process.env.NODE_ENV !== 'production';
+    if (!isDev && level === 'debug') return;
+
     if (isDev) {
       console[level === 'error' ? 'error' : level === 'warn' ? 'warn' : 'log'](`[${level.toUpperCase()}] ${message}`, context ?? '');
     } else {

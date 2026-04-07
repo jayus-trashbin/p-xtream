@@ -17,6 +17,8 @@ const BLOCKED_HOSTS = [
   '169.254.169.254',
 ];
 
+const BLOCKED_KEYWORDS = ['metadata', 'internal', '169.254'];
+
 export function validateDestination(rawUrl: string): URL {
   let parsed: URL;
   try {
@@ -33,6 +35,12 @@ export function validateDestination(rawUrl: string): URL {
 
   if (BLOCKED_HOSTS.includes(host)) {
     throw createError({ statusCode: 400, message: 'Destination not allowed' });
+  }
+
+  for (const keyword of BLOCKED_KEYWORDS) {
+    if (host.includes(keyword)) {
+      throw createError({ statusCode: 400, message: 'Destination not allowed (blocked keyword)' });
+    }
   }
 
   for (const range of PRIVATE_RANGES) {
