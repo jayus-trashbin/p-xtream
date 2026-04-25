@@ -1,8 +1,11 @@
 node_modules
-*.log*
+dist
 .nitro
 .cache
 .output
-.env
-dist
 .netlify
+*.log*
+
+# Environment — never commit real .env
+.env
+!.env.example

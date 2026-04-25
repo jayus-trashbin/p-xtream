@@ -15,9 +15,16 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Environment
+# Environment — never commit real .env files; .env.example is always allowed
 *.env
 !.env.example
+# Legacy pattern: block example.env (old naming convention in apps/web)
+example.env
+
+# Build artifacts / stats
+stats.html
+build_output.log
+coverage/
 
 # IDE / Editor
 .vscode/

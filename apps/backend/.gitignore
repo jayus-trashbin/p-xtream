@@ -4,11 +4,20 @@ dist
 .nitro
 .cache
 .output
-.env
 .vscode
+
+# Environment — never commit real .env
+.env
+!.env.example
+
+# Metrics
 .metrics.json
-pnpm-lock.yaml
+.metrics_daily.json
 .metrics_weekly.json
 .metrics_monthly.json
-.metrics_daily.json
+
+# Prisma generated client
 generated
+
+# Lock files (managed at monorepo root)
+pnpm-lock.yaml

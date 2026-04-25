@@ -1,87 +1,152 @@
 # P-Stream Monorepo
 
-Welcome to the P-Stream ecosystem. This monorepo contains the following services:
-- **apps/web**: React application for the streaming frontend.
-- **apps/backend**: Nitro-based API for user data, auth, discover, and watch parties.
-- **apps/proxy**: Simple-proxy for CORS and M3U8 relaying.
-- **packages/providers**: The scraping engine used to find video sources.
-- **packages/shared**: Shared TypeScript types and Zod validation schemas.
+Bem-vindo ao P-Stream — uma plataforma de streaming auto-hospedada com suporte a Watch Party, legendas avançadas (Language Reactor), vocabulário com repetição espaçada, e muito mais.
+
+## 📦 Estrutura do Monorepo
+
+| Serviço | Descrição | Porta padrão |
+|---|---|---|
+| `apps/web` | Frontend React (Vite + Tailwind) | `:5173` |
+| `apps/backend` | API Nitro — auth, dados, watch party | `:3001` |
+| `apps/proxy` | Proxy CORS/M3U8 para fontes de vídeo | `:3005` |
+| `packages/providers` | Engine de scraping de fontes de vídeo | — |
+| `packages/shared` | Tipos TypeScript e schemas Zod compartilhados | — |
 
 ---
 
-## 🛠 Prerequisites
+## 🛠 Pré-requisitos
 
-Before starting, ensure you have the following installed:
-- [Node.js](https://nodejs.org/) (v20 or higher recommended)
-- [pnpm](https://pnpm.io/) (v9 or higher)
-- [PostgreSQL](https://www.postgresql.org/) (running locally or via Docker)
-- [Redis](https://redis.io/) (Optional, recommended for Watch Party WebSocket sync)
+Antes de começar, certifique-se de ter instalado:
+
+- [Node.js](https://nodejs.org/) v20+
+- [pnpm](https://pnpm.io/) v9+
+- [PostgreSQL](https://www.postgresql.org/) (local ou via Docker)
+- [Redis](https://redis.io/) *(opcional — necessário para Watch Party via WebSocket)*
 
 ---
 
-## 🚀 Manual Installation Guide
+## 🚀 Instalação
 
-Follow these steps to get the environment running from scratch:
+### 1. Instalar dependências
 
-### 1. Install Dependencies
-Run this command at the root of the project to install all workspace dependencies:
 ```bash
 pnpm install
 ```
 
-### 2. Environment Configuration
-Copy the provided environment template to a new `.env` file at the root:
-```bash
-cp .env.example .env
-```
-Open the `.env` file and fill in the required fields:
-- `DATABASE_URL`: Your PostgreSQL connection string.
-- `CRYPTO_SECRET` & `JWT_SECRET`: Random 32-64 character strings. **`CRYPTO_SECRET` is used for both JWT signing and AES-256-GCM encryption of sensitive tokens in the database.**
-- `ALLOWED_ORIGINS`: Comma-separated list of origins (e.g., `http://localhost:5173`).
-- `TMDB_API_KEY` & `VITE_TMDB_API_KEY`: Get these from [TMDB Settings](https://www.themoviedb.org/settings/api).
+### 2. Configurar variáveis de ambiente
 
-### 3. Database Migration
-Initialize the database schema using Prisma:
+O projeto usa um arquivo `.env` por serviço. Copie os templates:
+
 ```bash
-# This will apply migrations to your PostgreSQL instance
+# Backend (API)
+cp apps/backend/.env.example apps/backend/.env
+
+# Web (frontend)
+cp apps/web/.env.example apps/web/.env
+
+# Proxy
+cp apps/proxy/.env.example apps/proxy/.env
+```
+
+Em seguida, edite cada `.env` e preencha os valores obrigatórios:
+
+#### `apps/backend/.env` — campos obrigatórios:
+- `DATABASE_URL` — string de conexão PostgreSQL
+- `CRYPTO_SECRET` — chave secreta aleatória (min 32 chars): `openssl rand -hex 32`
+- `ALLOWED_ORIGINS` — origens CORS permitidas, ex: `http://localhost:5173`
+- `TMDB_API_KEY` — chave v3 ou v4 da API do [TMDB](https://www.themoviedb.org/settings/api)
+
+#### `apps/web/.env` — campos obrigatórios:
+- `VITE_TMDB_READ_API_KEY` — mesma chave TMDB (pode ser a v4 Read Access Token)
+- `VITE_CORS_PROXY_URL` — URL do proxy rodando localmente (`http://localhost:3005`)
+- `VITE_M3U8_PROXY_URL` — igual ao CORS proxy
+- `VITE_BACKEND_URL` — URL do backend (`http://localhost:3001`)
+
+#### `apps/proxy/.env` — campos obrigatórios:
+- `JWT_SECRET` — **deve ser idêntico ao `CRYPTO_SECRET` do backend**
+
+### 3. Configurar banco de dados
+
+Crie o banco de dados e aplique as migrations do Prisma:
+
+```bash
+# Aplicar todas as migrations
+pnpm --filter @p-stream/backend exec prisma migrate deploy
+
+# OU em modo dev (cria migrations automaticamente se houver mudanças no schema)
 pnpm --filter @p-stream/backend exec prisma migrate dev
 ```
 
-### 4. Running the Development Environment
-Start all services in parallel using Turborepo:
+### 4. Rodar em desenvolvimento
+
 ```bash
 pnpm dev
 ```
-This will launch:
-- **Web**: http://localhost:5173
-- **Backend**: http://localhost:3000
-- **Proxy**: http://localhost:3001
+
+Isso inicia todos os serviços em paralelo via Turborepo:
+
+| Serviço | URL |
+|---|---|
+| Web | http://localhost:5173 |
+| Backend | http://localhost:3001 |
+| Proxy | http://localhost:3005 |
 
 ---
 
-## 🏗 Common Commands
+## 🏗 Comandos disponíveis
 
-| Command | Description |
+| Comando | Descrição |
 |---|---|
-| `pnpm dev` | Start all services in watch mode |
-| `pnpm build` | Build all apps and packages for production |
-| `pnpm lint` | Run ESLint across all projects |
-| `pnpm type-check` | Validate TypeScript types in all workspaces |
-| `pnpm test` | Run unit tests across the monorepo |
+| `pnpm dev` | Inicia todos os serviços em modo watch |
+| `pnpm build` | Build de produção de todos os apps e pacotes |
+| `pnpm lint` | Executa ESLint em todo o monorepo |
+| `pnpm type-check` | Valida tipos TypeScript em todos os workspaces |
+| `pnpm test` | Roda os testes unitários |
+
+---
+
+## 🔑 Obtendo chaves de API
+
+### TMDB (obrigatório)
+1. Crie uma conta em [themoviedb.org](https://www.themoviedb.org)
+2. Acesse **Configurações → API**
+3. Copie a **v4 Auth (Read Access Token)** e use em `VITE_TMDB_READ_API_KEY`
+4. Copie a **API Key (v3)** e use em `TMDB_API_KEY` (backend)
+
+### Trakt (opcional)
+1. Crie uma conta em [trakt.tv](https://trakt.tv)
+2. Acesse **Configurações → Seu perfil → Aplicativos OAuth → Novo Aplicativo**
+3. Como URL de redirecionamento use `http://localhost:5173`
+4. Copie o Client ID e Secret
+
+---
+
+## 🐳 Docker (alternativa)
+
+```bash
+# Inicia PostgreSQL e Redis via Docker Compose
+docker compose -f apps/backend/docker-compose.yml up -d
+```
 
 ---
 
 ## 💡 Troubleshooting
 
-- **Node/pnpm not found**: Ensure Node and pnpm are added to your system's PATH. If on Windows, try restarting your terminal after installation.
-- **Database Connection Error**: Double check your `DATABASE_URL` in `.env` and ensure the database exists.
-- **Missing TMDB Content**: Ensure `VITE_TMDB_API_KEY` is correctly set and is a v3 API key.
-- **Nitro Type Errors**: If your IDE shows errors for `h3` or `defineEventHandler`, run `pnpm dev` or `pnpm build` in the backend folder to generate the `.nitro` types.
+| Problema | Solução |
+|---|---|
+| Erro de conexão com banco | Verifique `DATABASE_URL` e se o PostgreSQL está rodando |
+| Conteúdo TMDB não aparece | Verifique se `VITE_TMDB_READ_API_KEY` está correto |
+| Proxy não carrega vídeos | Certifique-se que `JWT_SECRET` no proxy == `CRYPTO_SECRET` no backend |
+| Erros de tipo no IDE (h3, nitro) | Rode `pnpm dev` no backend para gerar os tipos Nitro |
+| Watch Party não sincroniza | Certifique-se de ter Redis rodando e `REDIS_URL` configurado no backend |
 
 ---
 
-## ⚡ Performance & Cleanup (Optional)
+## ✨ Features
 
-- **Image Optimization**: To reduce bundle size, convert PNG assets in `apps/web/public` to WebP using `cwebp`.
-- **WASM Cleanup**: `apps/web/public/streamhelper_bg.wasm` is currently unused and can be safely removed.
-- **Bundle Analysis**: Run `pnpm --filter @p-stream/web build` and check `apps/web/dist/stats.html` to see the impact of lazy-loaded locales.
+- 🎬 Player customizado com controles avançados
+- 🌐 Watch Party com WebSocket em tempo real (chat, reações, lobby)
+- 📝 Modo Language Reactor: legendas duplas + palavras clicáveis com dicionário
+- 📚 Sistema de vocabulário com repetição espaçada (SRS/SM-2)
+- 🔍 Descoberta de conteúdo via TMDB
+- 🔒 Autenticação segura com criptografia AES-256-GCM
