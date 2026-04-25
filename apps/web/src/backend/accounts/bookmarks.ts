@@ -25,9 +25,9 @@ export function bookmarkMediaToInput(
 ): BookmarkInput {
   return {
     meta: {
-      title: item.title,
-      type: item.type,
-      poster: item.poster,
+      title: item.title ?? "",
+      type: item.type ?? "",
+      poster: item.poster ?? undefined,
       year: item.year ?? 0,
     },
     tmdbId,

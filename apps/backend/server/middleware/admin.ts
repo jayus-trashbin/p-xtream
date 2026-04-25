@@ -1,7 +1,5 @@
-import { defineEventHandler, createError, getHeader } from 'h3';
 import { useAuth } from '../utils/auth';
 import { prisma } from '../utils/prisma';
-
 export default defineEventHandler(async (event) => {
   if (!event.node.req.url?.startsWith('/admin')) return;
 
@@ -16,7 +14,7 @@ export default defineEventHandler(async (event) => {
   if (!session) throw createError({ statusCode: 401, message: 'Session not found or expired' });
 
   // 'user' field matches the schema: sessions.user = userId
-  const user = await prisma.user.findUnique({ where: { id: session.user } });
+  const user = await prisma.users.findUnique({ where: { id: session.user } });
   if (!user?.permissions.includes('admin')) {
     throw createError({ statusCode: 403, message: 'Forbidden' });
   }

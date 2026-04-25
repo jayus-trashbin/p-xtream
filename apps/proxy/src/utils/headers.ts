@@ -21,6 +21,13 @@ const blacklistedHeaders = [
   'forwarded',
   'x-real-ip',
   'content-length',
+  'host',
+  'origin',
+  'referer',
+  'accept-encoding',
+  'sec-fetch-dest',
+  'sec-fetch-mode',
+  'sec-fetch-site',
   ...Object.keys(headerMap),
 ];
 
@@ -40,7 +47,7 @@ export function getProxyHeaders(headers: Headers): Headers {
   // default user agent
   output.set(
     'User-Agent',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:93.0) Gecko/20100101 Firefox/93.0',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/147.0.0.0 Safari/537.36',
   );
 
   Object.entries(headerMap).forEach((entry) => {

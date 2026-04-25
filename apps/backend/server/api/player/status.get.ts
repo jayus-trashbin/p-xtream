@@ -1,12 +1,11 @@
-import { defineEventHandler, getQuery, createError, getHeader } from 'h3';
 import { playerStatusStore, CLEANUP_INTERVAL } from '~/utils/playerStatus';
-import { verifySession } from '~/utils/auth';
-
+import { useAuth } from '~/utils/auth';
 export default defineEventHandler(async event => {
   const token = getHeader(event, 'authorization')?.replace('Bearer ', '');
   if (!token) throw createError({ statusCode: 401, message: 'Unauthorized' });
 
-  const session = await verifySession(token);
+  const { verifySessionToken } = useAuth();
+  const session = await verifySessionToken(token);
   if (!session) throw createError({ statusCode: 401, message: 'Invalid session' });
   const query = getQuery(event);
   const userId = query.userId as string;

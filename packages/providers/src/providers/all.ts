@@ -20,6 +20,7 @@ import { pirxcyScraper } from '@/providers/sources/pirxcy';
 import { tugaflixScraper } from '@/providers/sources/tugaflix';
 import { vidsrcvipScraper } from '@/providers/sources/vidsrcvip';
 import { zoechipScraper } from '@/providers/sources/zoechip';
+import { vidplayScraper } from '@/providers/embeds/vidplay/index';
 
 import { AnimetsuEmbeds } from './embeds/animetsu';
 import {
@@ -102,6 +103,13 @@ import { warezcdnScraper } from './sources/warezcdn';
 import { watchanimeworldScraper } from './sources/watchanimeworld';
 import { wecimaScraper } from './sources/wecima';
 import { zunimeScraper } from './sources/zunime';
+import { flixhqScraper } from './sources/flixhq/index';
+import { vidSrcToScraper } from './sources/vidsrcto/index';
+import { m4ufreeScraper } from './sources/m4ufree';
+import { nsbxScraper } from './sources/nsbx';
+import { whvxScraper } from './sources/whvx';
+import { deltaScraper, alphaScraper } from './embeds/nsbx';
+import { novaScraper, astraScraper, orionScraper } from './embeds/whvx';
 
 export function gatherAllSources(): Array<Sourcerer> {
   // all sources are gathered here
@@ -151,6 +159,11 @@ export function gatherAllSources(): Array<Sourcerer> {
     vidlinkScraper,
     vidrockScraper,
     watchanimeworldScraper,
+    flixhqScraper,
+    vidSrcToScraper,
+    m4ufreeScraper,
+    nsbxScraper,
+    whvxScraper,
   ];
 }
 
@@ -218,5 +231,11 @@ export function gatherAllEmbeds(): Array<Embed> {
     supervideoScraper,
     voeScraper,
     AnimekaiScraper,
+    vidplayScraper,
+    deltaScraper,
+    alphaScraper,
+    novaScraper,
+    astraScraper,
+    orionScraper,
   ];
 }

@@ -126,12 +126,12 @@ export function gatherErrorDebugInfo(error: any): ErrorDebugInfo {
       meta: playerStore.meta
         ? {
             title: playerStore.meta.title,
-            type: playerStore.meta.type,
+            type: playerStore.meta.type as string,
             tmdbId: playerStore.meta.tmdbId,
-            imdbId: playerStore.meta.imdbId,
+            ...(playerStore.meta.imdbId ? { imdbId: playerStore.meta.imdbId } : {}),
             releaseYear: playerStore.meta.releaseYear,
-            season: playerStore.meta.season?.number,
-            episode: playerStore.meta.episode?.number,
+            ...(playerStore.meta.season?.number !== undefined ? { season: playerStore.meta.season.number } : {}),
+            ...(playerStore.meta.episode?.number !== undefined ? { episode: playerStore.meta.episode.number } : {}),
           }
         : null,
     },
@@ -142,45 +142,53 @@ export function gatherErrorDebugInfo(error: any): ErrorDebugInfo {
       downlink: connection?.downlink,
       rtt: connection?.rtt,
     },
-    hls: error?.hls
+    ...(error?.hls
       ? {
-          details: error.hls.details,
-          fatal: error.hls.fatal,
-          level: error.hls.level,
-          levelDetails: error.hls.levelDetails
-            ? {
-                url: error.hls.levelDetails.url,
-                width: error.hls.levelDetails.width,
-                height: error.hls.levelDetails.height,
-                bitrate: error.hls.levelDetails.bitrate,
-              }
-            : undefined,
-          frag: error.hls.frag
-            ? {
-                url: error.hls.frag.url,
-                baseurl: error.hls.frag.baseurl,
-                duration: error.hls.frag.duration,
-                start: error.hls.frag.start,
-                sn: error.hls.frag.sn,
-              }
-            : undefined,
-          type: error.hls.type,
-          url: error.hls.url,
+          hls: {
+            details: error.hls.details as string,
+            fatal: error.hls.fatal as boolean,
+            ...(error.hls.level !== undefined ? { level: error.hls.level as number } : {}),
+            ...(error.hls.levelDetails
+              ? {
+                  levelDetails: {
+                    url: error.hls.levelDetails.url as string,
+                    width: error.hls.levelDetails.width as number,
+                    height: error.hls.levelDetails.height as number,
+                    bitrate: error.hls.levelDetails.bitrate as number,
+                  },
+                }
+              : {}),
+            ...(error.hls.frag
+              ? {
+                  frag: {
+                    url: error.hls.frag.url as string,
+                    baseurl: error.hls.frag.baseurl as string,
+                    duration: error.hls.frag.duration as number,
+                    start: error.hls.frag.start as number,
+                    sn: error.hls.frag.sn as number,
+                  },
+                }
+              : {}),
+            type: error.hls.type as string,
+            ...(error.hls.url !== undefined ? { url: error.hls.url as string } : {}),
+          },
         }
-      : undefined,
+      : {}),
     url: {
       pathname: window.location.pathname,
       search: window.location.search,
       hash: window.location.hash,
     },
     performance: {
-      memory: memory
+      ...(memory
         ? {
-            usedJSHeapSize: memory.usedJSHeapSize,
-            totalJSHeapSize: memory.totalJSHeapSize,
-            jsHeapSizeLimit: memory.jsHeapSizeLimit,
+            memory: {
+              usedJSHeapSize: memory.usedJSHeapSize,
+              totalJSHeapSize: memory.totalJSHeapSize,
+              jsHeapSizeLimit: memory.jsHeapSizeLimit,
+            },
           }
-        : undefined,
+        : {}),
       timing: {
         navigationStart: performanceInfo?.fetchStart || 0,
         loadEventEnd: performanceInfo?.loadEventEnd || 0,

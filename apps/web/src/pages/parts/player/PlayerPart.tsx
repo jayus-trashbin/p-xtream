@@ -12,6 +12,10 @@ import {
   useSkipTime,
 } from "@/components/player/hooks/useSkipTime";
 import { PauseOverlay } from "@/components/player/overlays/PauseOverlay";
+import { WatchPartyProvider } from "@/components/player/internals/WatchPartyProvider";
+import { WatchPartyChat, ChatToggleButton } from "@/components/player/atoms/WatchPartyChat";
+import { WatchPartyReactions } from "@/components/player/atoms/WatchPartyReactions";
+import { WatchPartyLobby } from "@/components/player/atoms/WatchPartyLobby";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { PlayerMeta, playerStatus } from "@/stores/player/slices/source";
 import { usePlayerStore } from "@/stores/player/store";
@@ -100,6 +104,10 @@ export function PlayerPart(props: PlayerPartProps) {
   return (
     <Player.Container onLoad={props.onLoad} showingControls={showTargets}>
       {props.children}
+      <WatchPartyProvider />
+      <WatchPartyChat />
+      <WatchPartyReactions />
+      <WatchPartyLobby />
       <PauseOverlay />
       <Player.BlackOverlay
         show={showTargets && status === playerStatus.PLAYING}
@@ -155,6 +163,8 @@ export function PlayerPart(props: PlayerPartProps) {
             <Player.InfoButton />
 
             <Player.BookmarkButton />
+            
+            {enabled && <ChatToggleButton />}
           </div>
           <div className="text-center hidden xl:flex justify-center items-center">
             <Player.EpisodeTitle />

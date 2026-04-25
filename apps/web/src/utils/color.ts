@@ -14,12 +14,12 @@ export function hexToRgb(hex: string): string | null {
   const result = /^([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})?$/i.exec(
     hex,
   );
-  return result
-    ? `${parseInt(result[1], 16)} ${parseInt(result[2], 16)} ${parseInt(
-        result[3],
-        16,
-      )}`
-    : null;
+  if (!result) return null;
+  const r = result[1];
+  const g = result[2];
+  const b = result[3];
+  if (!r || !g || !b) return null;
+  return `${parseInt(r, 16)} ${parseInt(g, 16)} ${parseInt(b, 16)}`;
 }
 
 // Convert HSL/HSLA to RGB
@@ -43,10 +43,14 @@ function parseHsla(hsla: string): string | null {
   // simple regex, assuming comma separation and valid syntax
   const match = hsla.match(/hsla?\((\d+),\s*(\d+)%,\s*(\d+)%(?:,\s*[\d.]+)?\)/);
   if (match) {
+    const h = match[1];
+    const s = match[2];
+    const l = match[3];
+    if (!h || !s || !l) return null;
     return hslToRgb(
-      parseInt(match[1], 10),
-      parseInt(match[2], 10),
-      parseInt(match[3], 10),
+      parseInt(h, 10),
+      parseInt(s, 10),
+      parseInt(l, 10),
     );
   }
   return null;

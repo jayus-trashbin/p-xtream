@@ -35,6 +35,10 @@ export interface RunnerOptions {
   // it makes sense to have this in the builder
   // but I belive it's more useful in runner ops
   disableOpensubtitles?: boolean;
+
+  // race the first N providers simultaneously, then fall back to sequential
+  // default: 0 (fully sequential). set to 3 for best latency/reliability balance
+  parallelTopN?: number;
 }
 
 export interface SourceRunnerOptions {

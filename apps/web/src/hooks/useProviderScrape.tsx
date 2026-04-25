@@ -252,6 +252,7 @@ export function useScrape() {
         media,
         sourceOrder: filteredSourceOrder,
         embedOrder: filteredEmbedOrder,
+        parallelTopN: 3,
         events: {
           init: initEvent,
           start: startEvent,

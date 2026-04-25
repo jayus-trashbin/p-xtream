@@ -1,6 +1,6 @@
 import "@/setup/pwa";
 // core-js removed — targeting Chrome 90+ which supports all required APIs natively (TechDebt #11)
-import "./stores/__old/imports"; // TODO Phase 3: remove after migrations verified complete for all users
+// import "./stores/__old/imports"; // TODO Phase 3: remove after migrations verified complete for all users (REMOVED: file missing)
 import "@/setup/ga";
 import "@/assets/css/index.css";
 
@@ -42,7 +42,7 @@ import {
 } from "./backend/extension/messaging";
 import { initializeChromecast } from "./setup/chromecast";
 import { initializeImageFadeIn } from "./setup/imageFadeIn";
-import { initializeOldStores } from "./stores/__old/migrations";
+// import { initializeOldStores } from "./stores/__old/migrations"; // REMOVED: file missing
 
 // Restore native decodeURIComponent if a browser extension (e.g. AdBlock Plus)
 // has replaced it with a broken version that throws ReferenceError on the browse page.
@@ -205,7 +205,7 @@ function AuthWrapper() {
 function MigrationRunner() {
   const status = useAsync(async () => {
     changeAppLanguage(useLanguageStore.getState().language);
-    await initializeOldStores();
+    // await initializeOldStores(); (REMOVED: file missing)
 
     const region = await detectRegion();
     useRegionStore.getState().setRegion(region);

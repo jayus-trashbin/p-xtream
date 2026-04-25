@@ -226,7 +226,9 @@ export function parseGroupString(group: string): {
 } {
   const match = group.match(/^\[([a-zA-Z0-9_]+)\](.*)$/);
   if (match) {
-    return { icon: match[1], name: match[2].trim() };
+    const icon = match[1] ?? "";
+    const name = match[2] ?? "";
+    return { icon, name: name.trim() };
   }
   return { icon: "", name: group };
 }

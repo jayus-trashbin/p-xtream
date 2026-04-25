@@ -1,3 +1,5 @@
+import { makeFetcher } from '@/fetchers/common';
+import { makeStandardFetcher } from '@/fetchers/standardFetch';
 import { Sourcerer } from '@/providers/base';
 
 export interface ProviderHealthResult {
@@ -48,15 +50,12 @@ export async function checkProviderHealth(provider: Sourcerer): Promise<Provider
   const start = Date.now();
 
   // Create a minimal context for health checks — no proxy, no events
+  const baseFetcher = makeStandardFetcher(fetch);
+  const usableFetcher = makeFetcher(baseFetcher);
+
   const ctx = {
-    fetcher: async (url: string) => {
-      const res = await fetch(url);
-      return res.text();
-    },
-    proxiedFetcher: async (url: string) => {
-      const res = await fetch(url);
-      return res.text();
-    },
+    fetcher: usableFetcher,
+    proxiedFetcher: usableFetcher,
     progress: () => {},
     features: {
       requires: [],

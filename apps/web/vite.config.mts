@@ -2,7 +2,6 @@ import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
 import loadVersion from "vite-plugin-package-version";
 import { VitePWA } from "vite-plugin-pwa";
-import checker from "vite-plugin-checker";
 import path from "path";
 import { handlebars } from "./plugins/handlebars";
 import { PluginOption, loadEnv } from "vite";
@@ -103,19 +102,7 @@ export default defineConfig(({ mode }) => {
         },
       }),
       loadVersion(),
-      checker({
-        overlay: {
-          position: "tr",
-        },
-        typescript: true, // check typescript build errors in dev server
-        eslint: {
-          // check lint errors in dev server
-          lintCommand: "eslint --ext .tsx,.ts src",
-          dev: {
-            logLevel: ["error"],
-          },
-        },
-      }),
+
       // splitVendorChunkPlugin removed — deprecated in Vite 5 (TechDebt #17)
       visualizer() as PluginOption,
       // Copy locale JSONs to /locales/ so i18next-http-backend can lazy-load them (TASK-028)

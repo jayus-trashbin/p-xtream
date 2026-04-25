@@ -229,6 +229,7 @@ export function findConflicts(
     for (let j = i + 1; j < ids.length; j += 1) {
       const id1 = ids[i];
       const id2 = ids[j];
+      if (!id1 || !id2) continue;
       const config1 = shortcuts[id1];
       const config2 = shortcuts[id2];
 

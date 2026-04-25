@@ -41,6 +41,7 @@ export type Status =
 
 type SetupData = {
   extension: Status;
+  userscript: Status;
   proxy: Status;
   defaultProxy: Status;
   febboxKeyTest?: Status;
@@ -199,6 +200,9 @@ function useIsSetup() {
     const extensionStatus: Status = (await isExtensionActive())
       ? "success"
       : "unset";
+    const userscriptStatus: Status = (await isUserscriptActive())
+      ? "success"
+      : "unset";
     let proxyStatus: Status = "unset";
     if (proxyUrls && proxyUrls.length > 0) {
       try {
@@ -217,6 +221,7 @@ function useIsSetup() {
 
     return {
       extension: extensionStatus,
+      userscript: userscriptStatus,
       proxy: proxyStatus,
       defaultProxy: "success",
       ...(conf().ALLOW_FEBBOX_KEY && {
@@ -229,6 +234,7 @@ function useIsSetup() {
   let globalState: Status = "unset";
   if (
     value?.extension === "success" ||
+    value?.userscript === "success" ||
     value?.proxy === "success" ||
     value?.febboxKeyTest === "success" ||
     value?.debridTokenTest === "success"
@@ -237,6 +243,7 @@ function useIsSetup() {
   if (
     value?.proxy === "error" ||
     value?.extension === "error" ||
+    value?.userscript === "error" ||
     value?.febboxKeyTest === "error" ||
     value?.debridTokenTest === "error"
   )
@@ -370,6 +377,9 @@ export function SetupPart() {
             <>
               <SetupCheckList status={setupStates.extension}>
                 {t("settings.connections.setup.items.extension")}
+              </SetupCheckList>
+              <SetupCheckList status={setupStates.userscript}>
+                Userscript
               </SetupCheckList>
               <SetupCheckList status={setupStates.proxy}>
                 {t("settings.connections.setup.items.proxy")}

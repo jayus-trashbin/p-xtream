@@ -34,7 +34,18 @@ function buildHeadersFromStream(stream: Stream): Record<string, string> {
   return headers;
 }
 
+import { isUserscriptActiveCached, registerUserscriptRule } from "@/backend/userscript/userscriptMessaging";
+
 export async function prepareStream(stream: Stream) {
+  if (isUserscriptActiveCached()) {
+    await registerUserscriptRule({
+      id: RULE_IDS.PREPARE_STREAM.toString(),
+      targetDomains: extractDomainsFromStream(stream),
+      requestHeaders: buildHeadersFromStream(stream),
+    });
+    return;
+  }
+
   await setDomainRule({
     ruleId: RULE_IDS.PREPARE_STREAM,
     targetDomains: extractDomainsFromStream(stream),

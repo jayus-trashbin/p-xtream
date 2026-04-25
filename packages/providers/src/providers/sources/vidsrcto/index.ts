@@ -7,7 +7,7 @@ import { MovieScrapeContext, ShowScrapeContext } from '@/utils/context';
 import { decryptSourceUrl } from './common';
 import { SourceResult, SourcesResult } from './types';
 
-const vidSrcToBase = 'https://vidsrc.to';
+const vidSrcToBase = 'https://vidsrc.net';
 const referer = `${vidSrcToBase}/`;
 
 const universalScraper = async (ctx: ShowScrapeContext | MovieScrapeContext): Promise<SourcererOutput> => {
@@ -82,7 +82,7 @@ const universalScraper = async (ctx: ShowScrapeContext | MovieScrapeContext): Pr
 export const vidSrcToScraper = makeSourcerer({
   id: 'vidsrcto',
   name: 'VidSrcTo',
-  disabled: true,
+  disabled: false,
   scrapeMovie: universalScraper,
   scrapeShow: universalScraper,
   flags: [flags.PROXY_BLOCKED],

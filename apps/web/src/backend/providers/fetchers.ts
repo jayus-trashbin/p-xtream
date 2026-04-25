@@ -7,6 +7,7 @@ import {
 import { sendExtensionRequest } from "@/backend/extension/messaging";
 import { getApiToken, setApiToken } from "@/backend/helpers/providerApi";
 import { getM3U8ProxyUrls, getProxyUrls } from "@/utils/proxyUrls";
+import { sendUserscriptRequest } from "@/backend/userscript/userscriptMessaging";
 
 import { convertBodyToObject, getBodyTypeFromBody } from "../extension/request";
 
@@ -106,6 +107,26 @@ export function makeExtensionFetcher() {
       bodyType: getBodyTypeFromBody(ops.body),
     });
     if (!result?.success) throw new Error(`extension error: ${result?.error}`);
+    const res = result.response;
+    return {
+      body: res.body,
+      finalUrl: res.finalUrl,
+      statusCode: res.statusCode,
+      headers: makeFinalHeaders(ops.readHeaders, res.headers),
+    };
+  };
+  return fetcher;
+}
+
+export function makeUserscriptFetcher() {
+  const fetcher: Fetcher = async (url, ops) => {
+    const result = await sendUserscriptRequest<any>({
+      url,
+      ...ops,
+      body: convertBodyToObject(ops.body),
+      bodyType: getBodyTypeFromBody(ops.body),
+    });
+    if (!result?.success) throw new Error(`userscript error: ${(result as any)?.error}`);
     const res = result.response;
     return {
       body: res.body,

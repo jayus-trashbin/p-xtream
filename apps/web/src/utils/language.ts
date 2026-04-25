@@ -187,7 +187,8 @@ export function getCountryCodeForLocale(locale: string): string | null {
     );
     if (regionCode) return regionCode.code_2.toLowerCase();
   }
-  return output.countries[0].code_2.toLowerCase();
+  const firstCountry = output.countries[0];
+  return firstCountry ? firstCountry.code_2.toLowerCase() : null;
 }
 
 /**
@@ -227,7 +228,7 @@ export function getLocaleInfo(locale: string): LocaleInfo | null {
     code: tag.parts.langtag ?? realLocale,
     isRtl: output.direction === "RTL",
     name: output.name[0] + (extraStringified ? ` ${extraStringified}` : ""),
-    nativeName: output.nativeName[0] ?? undefined,
+    ...(output.nativeName[0] ? { nativeName: output.nativeName[0] } : {}),
   };
 }
 

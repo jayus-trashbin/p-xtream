@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import {
   captionIsVisible,
@@ -10,6 +10,8 @@ import { Transition } from "@/components/utils/Transition";
 import { usePlayerStore } from "@/stores/player/store";
 import { usePreferencesStore } from "@/stores/preferences";
 import { SubtitleStyling, useSubtitleStore } from "@/stores/subtitles";
+import { tokenizeText } from "@/components/player/utils/tokenize";
+import { WordPopover } from "@/components/player/atoms/WordPopover";
 
 export const wordOverrides: Record<string, string> = {
   // Example: i: "I", but in polish "i" is "and" so this is disabled.
@@ -19,10 +21,16 @@ export function CaptionCue({
   text,
   styling,
   overrideCasing,
+  languageReactorEnabled,
+  language,
+  onWordClick,
 }: {
   text?: string;
   styling: SubtitleStyling;
   overrideCasing: boolean;
+  languageReactorEnabled: boolean;
+  language: string;
+  onWordClick: (word: string, lang: string, x: number, y: number) => void;
 }) {
   const parsedHtml = useMemo(() => {
     let textToUse = text;
@@ -88,6 +96,52 @@ export function CaptionCue({
 
   const textEffectStyles = getTextEffectStyles();
 
+  if (languageReactorEnabled && text) {
+    const tokens = tokenizeText(text, language);
+    return (
+      <p
+        className="mb-1 rounded px-4 py-1 text-center leading-normal"
+        style={{
+          color: styling.color,
+          fontSize: `${(1.5 * styling.size).toFixed(2)}em`,
+          backgroundColor: `rgba(0,0,0,${styling.backgroundOpacity.toFixed(2)})`,
+          backdropFilter:
+            styling.backgroundBlurEnabled && styling.backgroundBlur !== 0
+              ? `blur(${Math.floor(styling.backgroundBlur * 64)}px)`
+              : "none",
+          fontWeight: styling.bold ? "bold" : "normal",
+          ...textEffectStyles,
+        }}
+        dir="ltr"
+      >
+        {tokens.map((token) => (
+          <span
+            key={token.id}
+            className={`${
+              token.isWordLike
+                ? "cursor-pointer hover:bg-white/20 hover:text-white rounded transition-colors px-0.5"
+                : ""
+            }`}
+            onClick={(e) => {
+              if (token.isWordLike) {
+                e.stopPropagation();
+                // Pause video on word click if autoPause is enabled
+                const autoPause = useSubtitleStore.getState().autoPauseOnSubtitle;
+                if (autoPause) {
+                  usePlayerStore.getState().display?.pause();
+                }
+                const rect = e.currentTarget.getBoundingClientRect();
+                onWordClick(token.text, language, rect.left, rect.top);
+              }
+            }}
+          >
+            <bdi>{token.text}</bdi>
+          </span>
+        ))}
+      </p>
+    );
+  }
+
   return (
     <p
       className="mb-1 rounded px-4 py-1 text-center leading-normal"
@@ -115,17 +169,24 @@ export function CaptionCue({
   );
 }
 
-export function SubtitleRenderer() {
+export function SubtitleRenderer({
+  caption,
+  styling,
+  delay,
+  onWordClick,
+}: {
+  caption: { srtData: string; language: string } | null;
+  styling: SubtitleStyling;
+  delay: number;
+  onWordClick: (word: string, lang: string, x: number, y: number) => void;
+}) {
   const videoTime = usePlayerStore((s) => s.progress.time);
-  const srtData = usePlayerStore((s) => s.caption.selected?.srtData);
-  const language = usePlayerStore((s) => s.caption.selected?.language);
-  const styling = useSubtitleStore((s) => s.styling);
   const overrideCasing = useSubtitleStore((s) => s.overrideCasing);
-  const delay = useSubtitleStore((s) => s.delay);
+  const languageReactorEnabled = useSubtitleStore((s) => s.languageReactorEnabled);
 
   const parsedCaptions = useMemo(
-    () => (srtData ? parseSubtitles(srtData, language) : []),
-    [srtData, language],
+    () => (caption?.srtData ? parseSubtitles(caption.srtData, caption.language) : []),
+    [caption?.srtData, caption?.language],
   );
 
   const visibleCaptions = useMemo(
@@ -136,14 +197,19 @@ export function SubtitleRenderer() {
     [parsedCaptions, videoTime, delay],
   );
 
+  if (visibleCaptions.length === 0) return null;
+
   return (
-    <div>
+    <div className="flex flex-col items-center">
       {visibleCaptions.map(({ start, end, content }, i) => (
         <CaptionCue
           key={makeQueId(i, start, end)}
           text={content}
           styling={styling}
           overrideCasing={overrideCasing}
+          languageReactorEnabled={languageReactorEnabled}
+          language={caption?.language || "en"}
+          onWordClick={onWordClick}
         />
       ))}
     </div>
@@ -151,31 +217,74 @@ export function SubtitleRenderer() {
 }
 
 export function SubtitleView(props: { controlsShown: boolean }) {
-  const caption = usePlayerStore((s) => s.caption.selected);
+  const primaryCaption = usePlayerStore((s) => s.caption.selected);
+  const secondaryCaption = usePlayerStore((s) => s.caption.secondary);
   const source = usePlayerStore((s) => s.source);
   const display = usePlayerStore((s) => s.display);
   const isCasting = display?.getType() === "casting";
+  
+  const [activeWord, setActiveWord] = useState<{
+    word: string;
+    lang: string;
+    x: number;
+    y: number;
+  } | null>(null);
+
   const styling = useSubtitleStore((s) => s.styling);
+  const delay = useSubtitleStore((s) => s.delay);
+  
+  const dualEnabled = useSubtitleStore((s) => s.dualEnabled);
+  const dualPosition = useSubtitleStore((s) => s.dualPosition);
+  const dualSecondaryStyling = useSubtitleStore((s) => s.dualSecondaryStyling);
+  
   const enableNativeSubtitles = usePreferencesStore(
     (s) => s.enableNativeSubtitles,
   );
 
   // Hide custom captions when native subtitles are enabled
   const shouldUseNativeTrack = enableNativeSubtitles && source !== null;
-  if (shouldUseNativeTrack || !caption || isCasting) return null;
+  if (shouldUseNativeTrack || !primaryCaption || isCasting) return null;
 
   return (
     <Transition animation="slide-up" show>
       <div
-        className="pointer-events-none z-50 text-white absolute w-full flex flex-col items-center transition-[bottom]"
+        className={`pointer-events-none z-50 text-white absolute w-full flex items-center transition-[bottom] ${
+          dualEnabled && dualPosition === "split"
+            ? "flex-col lg:flex-row lg:justify-between px-16"
+            : "flex-col"
+        }`}
         style={{
           bottom: props.controlsShown
             ? "6rem"
             : `${styling.verticalPosition}rem`,
           transform: "translateZ(0)",
         }}
+        dir="ltr"
+        onClick={() => setActiveWord(null)} // Click outside to close popover
       >
-        <SubtitleRenderer />
+        {activeWord && (
+          <WordPopover
+            word={activeWord.word}
+            language={activeWord.lang}
+            x={activeWord.x}
+            y={activeWord.y}
+            onClose={() => setActiveWord(null)}
+          />
+        )}
+        <SubtitleRenderer
+          caption={primaryCaption as { srtData: string; language: string }}
+          styling={styling}
+          delay={delay}
+          onWordClick={(word, lang, x, y) => setActiveWord({ word, lang, x, y })}
+        />
+        {dualEnabled && secondaryCaption && (
+          <SubtitleRenderer
+            caption={secondaryCaption as { srtData: string; language: string }}
+            styling={dualSecondaryStyling}
+            delay={delay}
+            onWordClick={(word, lang, x, y) => setActiveWord({ word, lang, x, y })}
+          />
+        )}
       </div>
     </Transition>
   );

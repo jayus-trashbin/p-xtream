@@ -25,7 +25,7 @@ export function BookmarkButton() {
       icon={isBookmarked ? Icons.BOOKMARK : Icons.BOOKMARK_OUTLINE}
       iconSizeClass="text-base"
       className="p-2"
-      ariaLabel={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
+      ariaLabel={isBookmarked ? "Remove bookmark" : "Add bookmark"}
       ariaPressed={isBookmarked}
     />
   );

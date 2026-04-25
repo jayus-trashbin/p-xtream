@@ -135,14 +135,19 @@ export function decryptData(data: string, secret: Uint8Array) {
   if (secret.byteLength !== 32) throw new Error("Secret must be 256-bit");
 
   const [iv, encryptedData, tag] = data.split(".");
+  if (!iv || !encryptedData || !tag)
+    throw new Error("Invalid encrypted data format");
 
   const decipher = forge.cipher.createDecipher(
     "AES-GCM",
     uint8ArrayToBuffer(secret),
   );
+  const ivStr: string = iv;
+  const tagStr: string = tag;
+
   decipher.start({
-    iv: base64ToStringBuffer(iv),
-    tag: base64ToStringBuffer(tag),
+    iv: base64ToStringBuffer(ivStr),
+    tag: base64ToStringBuffer(tagStr),
     tagLength: 128,
   });
   decipher.update(base64ToStringBuffer(encryptedData));

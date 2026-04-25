@@ -35,7 +35,7 @@ export default {
         `${SINGLE_API_URL}&tl=${targetLang}&q=${encodeURIComponent(str)}`,
         {
           method: "GET",
-          signal: abortSignal,
+          signal: abortSignal ?? null,
           headers: {
             Accept: "application/json",
           },
@@ -63,7 +63,7 @@ export default {
     const response = await (
       await fetch(BATCH_API_URL, {
         method: "POST",
-        signal: abortSignal,
+        signal: abortSignal ?? null,
         headers: {
           "Content-Type": "application/json+protobuf",
           "X-goog-api-key": BATCH_API_KEY,

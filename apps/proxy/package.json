@@ -4,7 +4,7 @@
   "version": "2.2.4",
   "scripts": {
     "prepare": "nitropack prepare",
-    "dev": "nitropack dev",
+    "dev": "nitropack dev --port 3005",
     "build": "nitropack build",
     "build:cloudflare": "NITRO_PRESET=cloudflare npm run build",
     "build:aws": "NITRO_PRESET=aws_lambda npm run build",
@@ -24,6 +24,7 @@
     "nitropack": "^2.11.9"
   },
   "devDependencies": {
+    "@types/node": "^20.17.1",
     "@rollup/wasm-node": "^4.40.0",
     "@typescript-eslint/eslint-plugin": "^6.21.0",
     "@typescript-eslint/parser": "^6.21.0",

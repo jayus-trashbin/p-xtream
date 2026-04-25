@@ -105,14 +105,14 @@ export const useWatchHistoryStore = create(
             type: meta.type,
             title: meta.title,
             year: meta.releaseYear,
-            poster: meta.poster,
+            ...(meta.poster !== undefined ? { poster: meta.poster } : {}),
             progress: { ...progress },
             watchedAt: Date.now(),
             completed,
-            episodeId: meta.episode?.tmdbId,
-            seasonId: meta.season?.tmdbId,
-            seasonNumber: meta.season?.number,
-            episodeNumber: meta.episode?.number,
+            ...(meta.episode?.tmdbId !== undefined ? { episodeId: meta.episode.tmdbId } : {}),
+            ...(meta.season?.tmdbId !== undefined ? { seasonId: meta.season.tmdbId } : {}),
+            ...(meta.season?.number !== undefined ? { seasonNumber: meta.season.number } : {}),
+            ...(meta.episode?.number !== undefined ? { episodeNumber: meta.episode.number } : {}),
           };
         });
       },
@@ -128,9 +128,10 @@ export const useWatchHistoryStore = create(
 
           // add to updateQueue
           updateId += 1;
+          const splitId = id.split("-")[0];
           s.updateQueue.push({
             tmdbId: existingItem.episodeId
-              ? existingItem.seasonId || id.split("-")[0]
+              ? existingItem.seasonId || splitId || id
               : id,
             title: existingItem.title,
             year: existingItem.year,
@@ -159,7 +160,7 @@ export const useWatchHistoryStore = create(
 
           // Parse the key to extract TMDB ID and episode ID for episodes
           const isEpisode = id.includes("-");
-          const tmdbId = isEpisode ? id.split("-")[0] : id;
+          const tmdbId = isEpisode ? id.split("-")[0] ?? id : id;
           const episodeId = isEpisode ? id.split("-")[1] : undefined;
 
           s.updateQueue.push({

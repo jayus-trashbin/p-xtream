@@ -4,7 +4,7 @@
   "version": "2.1.5",
   "scripts": {
     "build": "nitro build",
-    "dev": "nitro dev",
+    "dev": "nitro dev --host 0.0.0.0 --port 3001",
     "prepare": "nitro prepare",
     "preview": "node .output/server/index.mjs",
     "type-check": "tsc --noEmit",
@@ -12,13 +12,15 @@
     "test": "vitest run"
   },
   "devDependencies": {
+    "@types/node": "^20.17.1",
     "@types/pg": "^8.18.0",
-    "@vitest/coverage-v8": "^1.6.1",
     "@typescript-eslint/eslint-plugin": "^8.31.1",
     "@typescript-eslint/parser": "^8.31.1",
+    "@vitest/coverage-v8": "^1.6.1",
     "eslint": "^9.26.0",
     "eslint-config-prettier": "^10.1.2",
     "eslint-plugin-prettier": "^5.4.0",
+    "h3": "^1.15.1",
     "nitropack": "latest",
     "prettier": "^3.5.3",
     "prisma": "^7.0.1",

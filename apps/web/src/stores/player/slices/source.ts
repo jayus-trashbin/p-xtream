@@ -107,6 +107,8 @@ export interface SourceSlice {
     selected: Caption | null;
     asTrack: boolean;
     translateTask: TranslateTask | null;
+    secondary: Caption | null;
+    secondaryTranslateTask: TranslateTask | null;
   };
   meta: PlayerMeta | null;
   failedSourcesPerMedia: Record<string, string[]>; // mediaKey -> array of failed sourceIds
@@ -132,6 +134,12 @@ export interface SourceSlice {
     targetLanguage: string,
   ): Promise<void>;
   clearTranslateTask(): void;
+  setSecondaryCaption(caption: Caption | null): void;
+  loadSecondaryFromTranslation(
+    targetCaption: CaptionListItem,
+    targetLanguage: string,
+  ): Promise<void>;
+  clearSecondaryCaption(): void;
   addFailedSource(sourceId: string): void;
   addFailedEmbed(sourceId: string, embedId: string): void;
   clearFailedSources(mediaKey?: string): void;
@@ -169,10 +177,10 @@ export function metaToScrapeMedia(meta: PlayerMeta): ScrapeMedia {
       releaseYear: meta.releaseYear,
       tmdbId: meta.tmdbId,
       type: "show",
-      imdbId: meta.imdbId,
+      ...(meta.imdbId ? { imdbId: meta.imdbId } : {}),
       episode: meta.episode,
       season: meta.season,
-    };
+    } as const;
   }
 
   return {
@@ -180,8 +188,8 @@ export function metaToScrapeMedia(meta: PlayerMeta): ScrapeMedia {
     releaseYear: meta.releaseYear,
     tmdbId: meta.tmdbId,
     type: "movie",
-    imdbId: meta.imdbId,
-  };
+    ...(meta.imdbId ? { imdbId: meta.imdbId } : {}),
+  } as const;
 }
 
 export const createSourceSlice: MakeSlice<SourceSlice> = (set, get) => ({
@@ -203,6 +211,8 @@ export const createSourceSlice: MakeSlice<SourceSlice> = (set, get) => ({
     selected: null,
     asTrack: false,
     translateTask: null,
+    secondary: null,
+    secondaryTranslateTask: null,
   },
   setSourceId(id) {
     set((s) => {
@@ -259,6 +269,29 @@ export const createSourceSlice: MakeSlice<SourceSlice> = (set, get) => ({
       s.caption.selected = caption;
     });
   },
+  setSecondaryCaption(caption) {
+    const store = get();
+    if (
+      !caption ||
+      (store.caption.secondaryTranslateTask &&
+        store.caption.secondaryTranslateTask.targetCaption.id !== caption?.id &&
+        store.caption.secondaryTranslateTask.translatedCaption?.id !== caption?.id)
+    ) {
+      store.clearSecondaryCaption();
+    }
+    set((s) => {
+      s.caption.secondary = caption;
+    });
+  },
+  clearSecondaryCaption() {
+    set((s) => {
+      s.caption.secondary = null;
+      if (s.caption.secondaryTranslateTask) {
+        s.caption.secondaryTranslateTask.cancel();
+        s.caption.secondaryTranslateTask = null;
+      }
+    });
+  },
   setSource(
     stream: SourceSliceSource,
     captions: CaptionListItem[],
@@ -274,7 +307,6 @@ export const createSourceSlice: MakeSlice<SourceSlice> = (set, get) => ({
       s.qualities = qualities as SourceQuality[];
       s.currentQuality = loadableStream.quality;
       s.captionList = captions;
-      s.interface.error = undefined;
       s.status = playerStatus.PLAYING;
       s.audioTracks = [];
       s.currentAudioTrack = null;
@@ -297,7 +329,6 @@ export const createSourceSlice: MakeSlice<SourceSlice> = (set, get) => ({
       lastChosenQuality: qualityPreferences.quality.lastChosenQuality,
     });
     set((s) => {
-      s.interface.error = undefined;
       s.status = playerStatus.PLAYING;
     });
     store.display?.load({
@@ -316,7 +347,6 @@ export const createSourceSlice: MakeSlice<SourceSlice> = (set, get) => ({
       set((s) => {
         s.currentQuality = quality;
         s.status = playerStatus.PLAYING;
-        s.interface.error = undefined;
       });
       store.display?.load({
         source: selectedQuality,
@@ -423,6 +453,8 @@ export const createSourceSlice: MakeSlice<SourceSlice> = (set, get) => ({
         selected: null,
         asTrack: false,
         translateTask: null,
+        secondary: null,
+        secondaryTranslateTask: null,
       };
     });
   },
@@ -435,9 +467,8 @@ export const createSourceSlice: MakeSlice<SourceSlice> = (set, get) => ({
     });
 
     try {
-      const { scrapeExternalSubtitles } = await import(
-        "@/utils/externalSubtitles"
-      );
+      const { scrapeExternalSubtitles } =
+        await import("@/utils/externalSubtitles");
       const externalCaptions = await scrapeExternalSubtitles(store.meta);
 
       if (externalCaptions.length > 0) {
@@ -467,6 +498,93 @@ export const createSourceSlice: MakeSlice<SourceSlice> = (set, get) => ({
       }
       s.caption.translateTask = null;
     });
+  },
+
+  async loadSecondaryFromTranslation(targetCaption, targetLanguage) {
+    let store = get();
+
+    if (store.caption.secondaryTranslateTask) {
+      console.warn("A secondary translation task is already in progress");
+      return;
+    }
+
+    const abortController = new AbortController();
+
+    set((s) => {
+      s.caption.secondaryTranslateTask = {
+        targetCaption,
+        targetLanguage,
+        done: false,
+        error: false,
+        cancel() {
+          if (!this.done && !this.error) {
+            console.log("Secondary translation task was cancelled");
+          }
+          abortController.abort();
+        },
+      };
+    });
+
+    function handleError(err: any) {
+      if (abortController.signal.aborted) {
+        return;
+      }
+      console.error("Secondary Translation task ran into an error", err);
+      set((s) => {
+        if (!s.caption.secondaryTranslateTask) return;
+        s.caption.secondaryTranslateTask.error = true;
+      });
+    }
+
+    try {
+      const srtData = await downloadCaption(targetCaption);
+      if (abortController.signal.aborted) {
+        return;
+      }
+      if (!srtData) {
+        throw new Error("Fetching failed");
+      }
+      set((s) => {
+        if (!s.caption.secondaryTranslateTask) return;
+        s.caption.secondaryTranslateTask.fetchedTargetCaption = {
+          id: targetCaption.id,
+          language: targetCaption.language,
+          srtData,
+        };
+      });
+      store = get();
+    } catch (err) {
+      handleError(err);
+      return;
+    }
+
+    try {
+      const result = await translate(
+        store.caption.secondaryTranslateTask!.fetchedTargetCaption!,
+        targetLanguage,
+        googletranslate,
+        abortController.signal,
+      );
+      if (abortController.signal.aborted) {
+        return;
+      }
+      if (!result) {
+        throw new Error("Translation failed");
+      }
+      set((s) => {
+        if (!s.caption.secondaryTranslateTask) return;
+        const translatedCaption: Caption = {
+          id: `${targetCaption.id}-secondary-translated-${targetLanguage}`,
+          language: targetLanguage,
+          srtData: result,
+        };
+        s.caption.secondaryTranslateTask.done = true;
+        s.caption.secondaryTranslateTask.translatedCaption = translatedCaption;
+        s.caption.secondary = translatedCaption; // Auto select secondary
+      });
+    } catch (err) {
+      handleError(err);
+    }
   },
 
   async translateCaption(

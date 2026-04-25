@@ -1,13 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import { checkProviderHealth } from './index';
-import { getProviders } from '../';
+import { getBuiltinSources } from '../entrypoint/providers';
 
 describe('Provider Health', () => {
-  const providers = getProviders();
+  const providers = getBuiltinSources();
 
-  it('getProviders() returns a non-empty list', () => {
+  it('getBuiltinSources() returns a non-empty list', () => {
     expect(providers.length).toBeGreaterThan(0);
   });
+
 
   it('checkProviderHealth accepts a valid provider without throwing', async () => {
     const provider = providers[0]!;
@@ -23,7 +24,8 @@ describe('Provider Health', () => {
     async () => {
       const results = await Promise.allSettled(providers.map(checkProviderHealth));
       const healthy = results.filter(
-        (r) => r.status === 'fulfilled' && r.value.status === 'healthy',
+        (r: PromiseSettledResult<Awaited<ReturnType<typeof checkProviderHealth>>>) =>
+          r.status === 'fulfilled' && r.value.status === 'healthy',
       ).length;
 
       const ratio = healthy / providers.length;

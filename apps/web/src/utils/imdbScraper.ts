@@ -96,7 +96,7 @@ const userAgents = [
 ];
 
 function getRandomUserAgent(): string {
-  return userAgents[Math.floor(Math.random() * userAgents.length)];
+  return userAgents[Math.floor(Math.random() * userAgents.length)] ?? userAgents[0] ?? "";
 }
 
 export async function scrapeIMDb(
@@ -187,7 +187,11 @@ export async function scrapeIMDb(
     throw new Error("Could not find IMDb data on the page");
   }
 
-  const data = JSON.parse(jsonMatch[1]);
+  const jsonData = jsonMatch[1];
+  if (!jsonData) {
+    throw new Error("Could not extract IMDb JSON data");
+  }
+  const data = JSON.parse(jsonData);
   const metadata: IMDbMetadata = {
     title: "",
     original_title: "",
@@ -213,8 +217,8 @@ export async function scrapeIMDb(
     countries: [],
     languages: [],
     locations: [],
-    season,
-    episode,
+    ...(season !== undefined ? { season } : {}),
+    ...(episode !== undefined ? { episode } : {}),
   };
 
   try {

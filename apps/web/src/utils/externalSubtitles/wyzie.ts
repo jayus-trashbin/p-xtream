@@ -50,9 +50,9 @@ export async function scrapeWyzieCaptions(
       source: `wyzie ${subtitle.source?.toString() === "opensubtitles" ? "opensubs" : subtitle.source}`,
       encoding: subtitle.encoding,
       flagUrl: subtitle.flagUrl,
-      release: subtitle.release,
-      releases: subtitle.releases,
-      origin: subtitle.origin,
+      release: subtitle.release ?? null,
+      releases: subtitle.releases ?? [],
+      origin: subtitle.origin ?? null,
     }));
 
     return wyzieCaptions;

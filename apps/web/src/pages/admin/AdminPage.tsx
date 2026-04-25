@@ -1,10 +1,12 @@
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Navigate } from "react-router-dom";
 
 import { Button } from "@/components/buttons/Button";
 import { ThinContainer } from "@/components/layout/ThinContainer";
 import { Heading1, Paragraph } from "@/components/utils/Text";
 import { Transition } from "@/components/utils/Transition";
+import { useAuth } from "@/hooks/auth/useAuth";
 import { useEmbedOrderState } from "@/hooks/useEmbedOrderState";
 import { SubPageLayout } from "@/pages/layouts/SubPageLayout";
 import { ConfigValuesPart } from "@/pages/parts/admin/ConfigValuesPart";
@@ -14,8 +16,6 @@ import { WorkerTestPart } from "@/pages/parts/admin/WorkerTestPart";
 
 import { BackendTestPart } from "../parts/admin/BackendTestPart";
 import { EmbedOrderPart } from "../parts/admin/EmbedOrderPart";
-import { useAuth } from "@/hooks/useAuth";
-import { Navigate } from "react-router-dom";
 
 export function AdminPage() {
   const { t } = useTranslation();
@@ -27,7 +27,7 @@ export function AdminPage() {
     return <Navigate to="/" replace />;
   }
 
-  const isAdmin = account?.permissions?.includes('admin') ?? false;
+  const isAdmin = account?.permissions?.includes("admin") ?? false;
   if (!isAdmin) {
     return <Navigate to="/" replace />;
   }

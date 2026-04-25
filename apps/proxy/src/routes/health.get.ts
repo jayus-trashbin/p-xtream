@@ -1,3 +1,4 @@
+import { H3Event } from 'h3';
 import { getCacheStats } from './m3u8-proxy';
 
 /**
@@ -6,7 +7,7 @@ import { getCacheStats } from './m3u8-proxy';
  * Returns uptime, version, and cache statistics.
  * Compatible with load balancer health checks and monitoring systems.
  */
-export default defineEventHandler((event) => {
+export default defineEventHandler((event: H3Event) => {
   setResponseHeaders(event, {
     'Content-Type': 'application/json',
     'Cache-Control': 'no-cache, no-store, must-revalidate',

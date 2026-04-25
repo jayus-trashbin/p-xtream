@@ -135,6 +135,13 @@ export function SettingsMenu({ id }: { id: string }) {
         >
           {t("player.menus.watchparty.watchpartyItem")}
         </Menu.Link>
+        <Menu.Link
+          clickable
+          onClick={() => router.navigate("/language-reactor")}
+          rightSide={<span className="text-xl">🎓</span>}
+        >
+          {t("player.menus.languageReactor.title", "Language Reactor")}
+        </Menu.Link>
       </Menu.Section>
       <Menu.SectionTitle />
       <Menu.Section>

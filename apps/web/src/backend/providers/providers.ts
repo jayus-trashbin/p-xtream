@@ -8,8 +8,10 @@ import { isExtensionActiveCached } from "@/backend/extension/messaging";
 import {
   makeExtensionFetcher,
   makeLoadBalancedSimpleProxyFetcher,
+  makeUserscriptFetcher,
   setupM3U8Proxy,
 } from "@/backend/providers/fetchers";
+import { isUserscriptActiveCached } from "@/backend/userscript/userscriptMessaging";
 
 // Initialize M3U8 proxy on module load
 setupM3U8Proxy();
@@ -39,6 +41,15 @@ export function getProviders() {
   }
 
   setupM3U8Proxy();
+
+  if (isUserscriptActiveCached()) {
+    return makeProviders({
+      fetcher: makeStandardFetcher(fetch),
+      proxiedFetcher: makeUserscriptFetcher(),
+      target: targets.BROWSER_EXTENSION,
+      consistentIpForRequests: true,
+    });
+  }
 
   return makeProviders({
     fetcher: makeStandardFetcher(fetch),

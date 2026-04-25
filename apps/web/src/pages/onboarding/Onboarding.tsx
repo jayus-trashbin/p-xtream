@@ -1,6 +1,7 @@
 import { Trans, useTranslation } from "react-i18next";
 
 import { isExtensionActiveCached } from "@/backend/extension/messaging";
+import { isUserscriptActiveCached } from "@/backend/userscript/userscriptMessaging";
 import { Button } from "@/components/buttons/Button";
 import { Icon, Icons } from "@/components/Icon";
 import { Stepper } from "@/components/layout/Stepper";
@@ -74,7 +75,7 @@ export function OnboardingPage() {
           <div className="flex flex-col-reverse gap-3 md:flex-row md:justify-between">
             <Button
               theme={
-                isFebboxSetup || isExtensionActiveCached() ? "purple" : "danger"
+                isFebboxSetup || isExtensionActiveCached() || isUserscriptActiveCached() ? "purple" : "danger"
               }
               onClick={() => completeAndRedirect()}
             >
@@ -130,7 +131,7 @@ export function OnboardingPage() {
                 >
                   {t(
                     "onboarding.start.moreInfo.explainer.extensionDescription",
-                  )}
+                  )} (Também aplicável via Userscript)
                 </Item>,
                 <Item title={t("onboarding.start.moreInfo.explainer.proxy")}>
                   {t("onboarding.start.moreInfo.explainer.proxyDescription")}
@@ -238,7 +239,7 @@ export function OnboardingPage() {
               </div>
               <Card
                 onClick={
-                  isFebboxSetup && isExtensionActiveCached()
+                  (isFebboxSetup && isExtensionActiveCached()) || isUserscriptActiveCached()
                     ? () => completeAndRedirect()
                     : skipModal.show
                 }
@@ -289,7 +290,7 @@ export function OnboardingPage() {
           {noProxies ? null : (
             <Card
               onClick={
-                isFebboxSetup && isExtensionActiveCached()
+                (isFebboxSetup && isExtensionActiveCached()) || isUserscriptActiveCached()
                   ? () => completeAndRedirect()
                   : skipModal.show
               }

@@ -49,14 +49,16 @@ export function getParsedUrls() {
     }
 
     const match = /^\|([^|]+)\|(.*)$/g.exec(url);
-    if (!match || !match[2]) return;
-    if (!canParseUrl(match[2])) return;
-    const params = parseParams(match[1]);
+    const matchParams = match?.[1];
+    const matchUrl = match?.[2];
+    if (!matchUrl || !matchParams) return;
+    if (!canParseUrl(matchUrl)) return;
+    const params = parseParams(matchParams);
     const type = params.type ?? "proxy";
 
     if (!isParsedUrlType(type)) return;
     output.push({
-      url: match[2],
+      url: matchUrl,
       type,
     });
   });

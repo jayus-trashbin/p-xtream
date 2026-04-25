@@ -65,7 +65,11 @@ export function SkipEpisodeButton(props: SkipEpisodeButtonProps) {
       icon={Icons.SKIP_EPISODE}
       iconSizeClass="text-xl"
       className="hover:bg-video-buttonBackground hover:bg-opacity-50"
-      ariaLabel={nextEp.title ? `Next episode: ${nextEp.title}` : `Next episode (Episode ${nextEp.number})`}
+      ariaLabel={
+        nextEp.title
+          ? `Next episode: ${nextEp.title}`
+          : `Next episode (Episode ${nextEp.number})`
+      }
     />
   );
 }

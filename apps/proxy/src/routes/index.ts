@@ -1,3 +1,4 @@
+import { H3Event } from 'h3';
 import { getBodyBuffer } from '@/utils/body';
 import {
   getProxyHeaders,
@@ -11,23 +12,13 @@ import {
 } from '@/utils/turnstile';
 import { validateDestination } from '@/utils/validateDestination';
 
-export default defineEventHandler(async (event) => {
-  // Handle preflight CORS requests
-  if (isPreflightRequest(event)) {
-    handleCors(event, {});
-    // Ensure the response ends here for preflight
+export default defineEventHandler(async (event: H3Event) => {
+  if (isPreflightRequest(event) || event.method === 'OPTIONS') {
     event.node.res.statusCode = 204;
-    event.node.res.end();
-    return;
+    return '';
   }
 
-  // Reject any other OPTIONS requests
-  if (event.node.req.method === 'OPTIONS') {
-    throw createError({
-      statusCode: 405,
-      statusMessage: 'Method Not Allowed',
-    });
-  }
+
 
   // Parse destination URL
   const destination = getQuery<{ destination?: string }>(event).destination;
@@ -68,9 +59,9 @@ export default defineEventHandler(async (event) => {
       fetchOptions: {
         redirect: 'follow',
         headers: getProxyHeaders(event.headers),
-        body,
+        body: body as any,
       },
-      onResponse(outputEvent, response) {
+      onResponse(outputEvent: H3Event, response) {
         const headers = getAfterResponseHeaders(response.headers, response.url);
         setResponseHeaders(outputEvent, headers);
         if (token) setTokenHeader(event, token);

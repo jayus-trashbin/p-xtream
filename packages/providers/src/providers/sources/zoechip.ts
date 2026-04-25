@@ -209,7 +209,7 @@ export const zoechipScraper = makeSourcerer({
   id: 'zoechip',
   name: 'ZoeChip',
   rank: 170,
-  disabled: true,
+  disabled: false,
   flags: [],
   scrapeMovie: comboScraper,
   scrapeShow: comboScraper,

@@ -42,6 +42,8 @@ export function WatchPartyReporter() {
     roomCode,
     isHost,
     disable,
+    transport,
+    wsConnected,
   } = useWatchPartyStore();
 
   // Reset validation state when watch party is disabled
@@ -264,12 +266,14 @@ export function WatchPartyReporter() {
 
   useEffect(() => {
     // Skip if watch party is not enabled
+    // Also skip HTTP reporting when host is using WebSocket (WatchPartyProvider handles it)
     if (
       !watchPartyEnabled ||
       !latestStatus ||
       !latestStatus.hasPlayedOnce ||
       !roomCode ||
-      (!isHost && !contentValidatedRef.current) // Don't send updates until content is validated for non-hosts
+      (!isHost && !contentValidatedRef.current) || // Don't send until validated for non-hosts
+      (isHost && transport === "ws" && wsConnected) // Host sends via WS when connected
     )
       return;
 

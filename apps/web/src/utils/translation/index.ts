@@ -49,7 +49,7 @@ class Translator {
 
   private serviceCfg: TranslateServiceConfig;
 
-  private abortSignal?: AbortSignal;
+  private abortSignal: AbortSignal | undefined;
 
   constructor(
     srtData: string,
@@ -140,8 +140,12 @@ class Translator {
       }
 
       for (let i = 0; i < batch.length; i += 1) {
-        this.contentCache.set(batch[i].text, result[i]);
-        batch[i].text = result[i];
+        const item = batch[i];
+        const res = result[i];
+        if (item && res) {
+          this.contentCache.set(item.text, res);
+          item.text = res;
+        }
       }
 
       return true;

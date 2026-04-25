@@ -116,7 +116,7 @@ export const primewireScraper = makeSourcerer({
   id: 'primewire',
   name: 'PrimeWire 🔥',
   rank: 206,
-  disabled: true,
+  disabled: false,
   flags: [flags.CORS_ALLOWED],
   scrapeMovie: comboScraper,
   scrapeShow: comboScraper,

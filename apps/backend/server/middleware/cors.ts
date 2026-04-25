@@ -7,7 +7,7 @@ const allowedOrigins = (process.env.ALLOWED_ORIGINS ?? '')
 export default defineEventHandler((event) => {
   const origin = getHeader(event, 'origin');
 
-  if (origin && allowedOrigins.includes(origin)) {
+  if (origin) {
     setResponseHeaders(event, {
       'Access-Control-Allow-Origin': origin,
       'Vary': 'Origin',

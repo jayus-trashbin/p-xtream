@@ -65,6 +65,31 @@ export interface SubtitleStore {
   overrideCasing: boolean;
   delay: number;
   showDelayIndicator: boolean;
+  // Dual Subtitles
+  dualEnabled: boolean;
+  dualPosition: "stacked" | "split";
+  dualSecondaryStyling: SubtitleStyling;
+  setDualEnabled(enabled: boolean): void;
+  setDualPosition(position: "stacked" | "split"): void;
+  updateSecondaryStyling(newStyling: Partial<SubtitleStyling>): void;
+  // Language Reactor
+  languageReactorEnabled: boolean;
+  languageReactorOnboarded: boolean;
+  studyLanguage: string | null;
+  nativeLanguage: string;
+  highlightUnknownWords: boolean;
+  autoPauseOnSubtitle: boolean;
+  ttsProvider: "webspeech" | "google";
+  dictionaryProvider: "wiktionary" | "google" | "none";
+  setLanguageReactorEnabled(enabled: boolean): void;
+  setLanguageReactorOnboarded(onboarded: boolean): void;
+  setStudyLanguage(lang: string | null): void;
+  setNativeLanguage(lang: string): void;
+  setHighlightUnknownWords(enabled: boolean): void;
+  setAutoPauseOnSubtitle(enabled: boolean): void;
+  setTtsProvider(provider: "webspeech" | "google"): void;
+  setDictionaryProvider(provider: "wiktionary" | "google" | "none"): void;
+
   updateStyling(newStyling: Partial<SubtitleStyling>): void;
   resetStyling(): void;
   setSubtitle(
@@ -103,6 +128,27 @@ export const useSubtitleStore = create(
         fontStyle: "default",
         borderThickness: 1,
       },
+      dualEnabled: false,
+      dualPosition: "stacked",
+      dualSecondaryStyling: {
+        color: "#ffff00",
+        backgroundOpacity: 0.5,
+        size: 0.8,
+        backgroundBlur: 0.5,
+        backgroundBlurEnabled: !isFirefox,
+        bold: false,
+        verticalPosition: 2.5,
+        fontStyle: "default",
+        borderThickness: 1,
+      },
+      languageReactorEnabled: false,
+      languageReactorOnboarded: false,
+      studyLanguage: null,
+      nativeLanguage: "pt-BR",
+      highlightUnknownWords: true,
+      autoPauseOnSubtitle: false,
+      ttsProvider: "webspeech",
+      dictionaryProvider: "wiktionary",
       showDelayIndicator: false,
       resetSubtitleSpecificSettings() {
         set((s) => {
@@ -143,6 +189,39 @@ export const useSubtitleStore = create(
             s.styling.fontStyle = newStyling.fontStyle;
           if (newStyling.borderThickness !== undefined)
             s.styling.borderThickness = Math.min(
+              10,
+              Math.max(0, newStyling.borderThickness),
+            );
+        });
+      },
+      updateSecondaryStyling(newStyling) {
+        set((s) => {
+          if (newStyling.backgroundOpacity !== undefined)
+            s.dualSecondaryStyling.backgroundOpacity = Math.min(
+              1,
+              Math.max(0, newStyling.backgroundOpacity),
+            );
+          if (newStyling.backgroundBlur !== undefined)
+            s.dualSecondaryStyling.backgroundBlur = Math.min(
+              1,
+              Math.max(0, newStyling.backgroundBlur),
+            );
+          if (newStyling.backgroundBlurEnabled !== undefined)
+            s.dualSecondaryStyling.backgroundBlurEnabled = newStyling.backgroundBlurEnabled;
+          if (newStyling.color !== undefined)
+            s.dualSecondaryStyling.color = newStyling.color.toLowerCase();
+          if (newStyling.size !== undefined)
+            s.dualSecondaryStyling.size = Math.min(10, Math.max(0.01, newStyling.size));
+          if (newStyling.bold !== undefined) s.dualSecondaryStyling.bold = newStyling.bold;
+          if (newStyling.verticalPosition !== undefined)
+            s.dualSecondaryStyling.verticalPosition = Math.min(
+              100,
+              Math.max(0, newStyling.verticalPosition),
+            );
+          if (newStyling.fontStyle !== undefined)
+            s.dualSecondaryStyling.fontStyle = newStyling.fontStyle;
+          if (newStyling.borderThickness !== undefined)
+            s.dualSecondaryStyling.borderThickness = Math.min(
               10,
               Math.max(0, newStyling.borderThickness),
             );
@@ -196,6 +275,16 @@ export const useSubtitleStore = create(
           s.showDelayIndicator = show;
         });
       },
+      setDualEnabled(enabled) { set((s) => { s.dualEnabled = enabled; }); },
+      setDualPosition(position) { set((s) => { s.dualPosition = position; }); },
+      setLanguageReactorEnabled(enabled) { set((s) => { s.languageReactorEnabled = enabled; }); },
+      setLanguageReactorOnboarded(onboarded) { set((s) => { s.languageReactorOnboarded = onboarded; }); },
+      setStudyLanguage(lang) { set((s) => { s.studyLanguage = lang; }); },
+      setNativeLanguage(lang) { set((s) => { s.nativeLanguage = lang; }); },
+      setHighlightUnknownWords(enabled) { set((s) => { s.highlightUnknownWords = enabled; }); },
+      setAutoPauseOnSubtitle(enabled) { set((s) => { s.autoPauseOnSubtitle = enabled; }); },
+      setTtsProvider(provider) { set((s) => { s.ttsProvider = provider; }); },
+      setDictionaryProvider(provider) { set((s) => { s.dictionaryProvider = provider; }); },
     })),
     {
       name: "__MW::subtitles",

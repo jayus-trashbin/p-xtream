@@ -11,6 +11,7 @@ import {
 
 import { convertLegacyUrl, isLegacyUrl } from "@/backend/metadata/getmeta";
 import { generateQuickSearchMediaUrl } from "@/backend/metadata/tmdb";
+import { FeatureErrorBoundary } from "@/components/FeatureErrorBoundary";
 import { DetailsModal } from "@/components/overlays/detailsModal";
 import { GamepadControlsModal } from "@/components/overlays/GamepadControlsModal";
 import { KeyboardCommandsEditModal } from "@/components/overlays/KeyboardCommandsEditModal";
@@ -49,7 +50,7 @@ import { useHistoryListener } from "@/stores/history";
 import { useClearModalsOnNavigation } from "@/stores/interface/overlayStack";
 import { LanguageProvider } from "@/stores/language";
 
-import { FeatureErrorBoundary } from "@/components/FeatureErrorBoundary";
+export const maintenanceTime = "Est. 2 hours";
 
 const DeveloperPage = lazy(() => import("@/pages/DeveloperPage"));
 const TestView = lazy(() => import("@/pages/developer/TestView"));
@@ -198,17 +199,46 @@ function App() {
           <Route path="/jip" element={<JipPage />} />
           <Route path="/pas" element={<PasPage />} />
           {/* Discover pages */}
-          <Route path="/discover" element={<FeatureErrorBoundary name="Discover"><Discover /></FeatureErrorBoundary>} />
+          <Route
+            path="/discover"
+            element={
+              <FeatureErrorBoundary name="Discover">
+                <Discover />
+              </FeatureErrorBoundary>
+            }
+          />
           <Route
             path="/discover/more/:contentType/:mediaType"
-            element={<FeatureErrorBoundary name="Discover"><MoreContent /></FeatureErrorBoundary>}
+            element={
+              <FeatureErrorBoundary name="Discover">
+                <MoreContent />
+              </FeatureErrorBoundary>
+            }
           />
           <Route
             path="/discover/more/:contentType/:id/:mediaType"
-            element={<FeatureErrorBoundary name="Discover"><MoreContent /></FeatureErrorBoundary>}
+            element={
+              <FeatureErrorBoundary name="Discover">
+                <MoreContent />
+              </FeatureErrorBoundary>
+            }
           />
-          <Route path="/discover/more/:category" element={<FeatureErrorBoundary name="Discover"><MoreContent /></FeatureErrorBoundary>} />
-          <Route path="/discover/all" element={<FeatureErrorBoundary name="Discover"><DiscoverMore /></FeatureErrorBoundary>} />
+          <Route
+            path="/discover/more/:category"
+            element={
+              <FeatureErrorBoundary name="Discover">
+                <MoreContent />
+              </FeatureErrorBoundary>
+            }
+          />
+          <Route
+            path="/discover/all"
+            element={
+              <FeatureErrorBoundary name="Discover">
+                <DiscoverMore />
+              </FeatureErrorBoundary>
+            }
+          />
           {/* Bookmarks page */}
           <Route path="/bookmarks" element={<AllBookmarks />} />
           {/* Watch History page */}

@@ -36,4 +36,7 @@ export default defineNitroConfig({
       clientSecret: process.env.TRAKT_SECRET_ID,
     },
   },
+  routeRules: {
+    '/**': { cors: true }
+  }
 });

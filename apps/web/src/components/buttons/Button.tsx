@@ -68,7 +68,7 @@ export function Button(props: Props) {
     classes = classes
       .split(" ")
       .filter(
-        (className) =>
+        (className: string) =>
           !className.startsWith("hover:") && !className.startsWith("active:"),
       )
       .join(" ");

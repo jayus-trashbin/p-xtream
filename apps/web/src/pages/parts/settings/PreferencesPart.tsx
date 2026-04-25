@@ -77,7 +77,30 @@ export function PreferencesPart(props: {
 
   const sourceItems = useMemo(() => {
     const currentDeviceSources = getProviders().listSources();
-    return props.sourceOrder.map((id) => ({
+    const allSourceIds = allSources.map((s) => s.id);
+
+    // Start with user-ordered sources that still exist
+    const orderedIds = props.sourceOrder.filter((id) =>
+      allSourceIds.includes(id),
+    );
+
+    // Append any sources not yet in the user's order (new/missing providers)
+    // To make it PERFECT: we sort the missing ones so that ACTIVE providers appear before DISABLED ones,
+    // or we can even filter out the completely disabled ones to avoid UI clutter.
+    // Let's filter out disabled ones from missingIds so they don't bloat the list.
+    const missingIds = allSourceIds.filter(
+      (id) => !orderedIds.includes(id) && !!currentDeviceSources.find((s) => s.id === id),
+    );
+
+    // Also get the disabled missing ones, just in case we want to show them at the very bottom
+    const disabledMissingIds = allSourceIds.filter(
+      (id) => !orderedIds.includes(id) && !currentDeviceSources.find((s) => s.id === id),
+    );
+
+    // PERFECT ORDER: User's saved order -> new active providers -> (optional) disabled providers at the very bottom
+    const fullOrder = [...orderedIds, ...missingIds, ...disabledMissingIds];
+
+    return fullOrder.map((id) => ({
       id,
       name: allSources.find((s) => s.id === id)?.name || id,
       disabled: !currentDeviceSources.find((s) => s.id === id),
@@ -107,7 +130,7 @@ export function PreferencesPart(props: {
             <Dropdown
               className="w-full"
               options={options}
-              selectedItem={selected || options[0]}
+              selectedItem={selected || options[0]!}
               setSelectedItem={(opt) => props.setLanguage(opt.id)}
             />
           </div>
@@ -459,9 +482,25 @@ export function PreferencesPart(props: {
                 <Button
                   className="max-w-[25rem]"
                   theme="secondary"
-                  onClick={() =>
-                    props.setSourceOrder(allSources.map((s) => s.id))
-                  }
+                  onClick={() => {
+                    const defaultOrder = [
+                      "cuevana3",
+                      "whvx",
+                      "nsbx",
+                      "fsonline",
+                      "tugaflix",
+                      "animeflv",
+                      "soapertv",
+                      "zoechip",
+                    ];
+                    // Add the remaining active sources after the default top ones
+                    const currentDeviceSources = getProviders().listSources();
+                    const otherActiveIds = currentDeviceSources
+                      .map((s) => s.id)
+                      .filter((id) => !defaultOrder.includes(id));
+                    
+                    props.setSourceOrder([...defaultOrder, ...otherActiveIds]);
+                  }}
                 >
                   {t("settings.reset")}
                 </Button>

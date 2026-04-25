@@ -123,7 +123,9 @@ export async function scrapeRottenTomatoes(
     }
 
     // Extract movie rows from search results
-    const movieRows = searchResultsDiv[1].match(
+    const searchResultsHtml = searchResultsDiv[1];
+    if (!searchResultsHtml) return null;
+    const movieRows = searchResultsHtml.match(
       /<search-page-media-row[^>]*>(.*?)<\/search-page-media-row>/gs,
     );
     if (!movieRows || movieRows.length === 0) return null;
@@ -139,19 +141,26 @@ export async function scrapeRottenTomatoes(
         /tomatometer-is-certified="([^"]+)"/,
       );
 
+      const nameVal = nameMatch?.[1];
+      const urlVal = urlMatch?.[1];
+      const scoreVal = scoreMatch?.[1];
+      const sentimentVal = sentimentMatch?.[1];
+      const yearVal = yearMatch?.[1];
+      const certifiedVal = tomatometeriscertified?.[1];
+
       return {
-        name: nameMatch ? nameMatch[1].trim() : "",
-        url: urlMatch ? urlMatch[1] : "",
-        year: yearMatch ? parseInt(yearMatch[1], 10) : null,
+        name: nameVal ? nameVal.trim() : "",
+        url: urlVal ?? "",
+        year: yearVal ? parseInt(yearVal, 10) : null,
         tomatometer: {
-          value: scoreMatch ? parseInt(scoreMatch[1], 10) : 0,
+          value: scoreVal ? parseInt(scoreVal, 10) : 0,
           state:
-            sentimentMatch &&
-            tomatometeriscertified?.[1] === "true" &&
-            parseInt(scoreMatch?.[1] || "0", 10) >= 75
+            sentimentVal &&
+            certifiedVal === "true" &&
+            parseInt(scoreVal || "0", 10) >= 75
               ? "certified_fresh"
-              : sentimentMatch
-                ? sentimentMatch[1].toLowerCase() === "positive"
+              : sentimentVal
+                ? sentimentVal.toLowerCase() === "positive"
                   ? "fresh"
                   : "rotten"
                 : "rotten",

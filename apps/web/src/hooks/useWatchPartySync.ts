@@ -80,7 +80,14 @@ export function useWatchPartySync(
   const currentTime = usePlayerStore((s) => s.progress.time);
   const isPlaying = usePlayerStore((s) => s.mediaPlaying.isPlaying);
   // Get watch party state
-  const { roomCode, isHost, enabled, enableAsGuest } = useWatchPartyStore();
+  const {
+    roomCode,
+    isHost,
+    enabled,
+    enableAsGuest,
+    transport,
+    wsConnected,
+  } = useWatchPartyStore();
 
   // Reset URL parameter checking when watch party is disabled
   useEffect(() => {
@@ -239,6 +246,8 @@ export function useWatchPartySync(
               (a, b) => b.timestamp - a.timestamp,
             )[0];
 
+            if (!latestStatus) return;
+
             users.push({
               userId: userIdFromResponse,
               isHost: latestStatus.isHost,
@@ -252,11 +261,11 @@ export function useWatchPartySync(
               content: {
                 title: latestStatus.content.title,
                 type: latestStatus.content.type,
-                tmdbId: latestStatus.content.tmdbId,
-                seasonId: latestStatus.content.seasonId,
-                episodeId: latestStatus.content.episodeId,
-                seasonNumber: latestStatus.content.seasonNumber,
-                episodeNumber: latestStatus.content.episodeNumber,
+                ...(latestStatus.content.tmdbId !== undefined ? { tmdbId: latestStatus.content.tmdbId } : {}),
+                ...(latestStatus.content.seasonId !== undefined ? { seasonId: latestStatus.content.seasonId } : {}),
+                ...(latestStatus.content.episodeId !== undefined ? { episodeId: latestStatus.content.episodeId } : {}),
+                ...(latestStatus.content.seasonNumber !== undefined ? { seasonNumber: latestStatus.content.seasonNumber } : {}),
+                ...(latestStatus.content.episodeNumber !== undefined ? { episodeNumber: latestStatus.content.episodeNumber } : {}),
               },
             });
           }
@@ -285,16 +294,13 @@ export function useWatchPartySync(
     }
   }, [backendUrl, account, roomCode, enabled]);
 
-  // Periodically refresh room data
+  // Periodically refresh room data (polling fallback — disabled when WS is active)
   useEffect(() => {
-    // Store reference to current syncState for cleanup
     const syncState = syncStateRef.current;
 
     if (!enabled || !roomCode) {
       setRoomUsers([]);
       setUserCount(1);
-
-      // Reset all state
       syncState.lastUserCount = 1;
       syncState.prevRoomUsers = [];
       syncState.previousHostPlaying = null;
@@ -302,22 +308,25 @@ export function useWatchPartySync(
       return;
     }
 
+    // Skip polling when WebSocket transport is active and connected
+    if (transport === "ws" && wsConnected) {
+      return;
+    }
+
     // Initial fetch
     refreshRoomData();
 
-    // Set up interval - refresh every 1 second for faster updates
+    // Polling at 1s — used when WebSocket is unavailable
     const interval = setInterval(refreshRoomData, 1000);
 
     return () => {
       clearInterval(interval);
       setRoomUsers([]);
       setUserCount(1);
-
-      // Use captured reference from outer scope
       syncState.previousHostPlaying = null;
       syncState.previousHostTime = null;
     };
-  }, [enabled, roomCode, refreshRoomData]);
+  }, [enabled, roomCode, refreshRoomData, transport, wsConnected]);
 
   return {
     roomUsers,
