@@ -154,25 +154,6 @@ export function useWatchPartySocket() {
           const from = event.from;
           if (from && pl) {
             store.setWsConnected(true);
-            const account = useAuthStore.getState().account;
-            const myId = account?.userId;
-            
-            // Sync subtitles if we are guest and the update has settings
-            if (pl.settings && pl.isHost && myId !== pl.userId) {
-              const { selectedSubtitleId, dualSubtitleId } = pl.settings;
-              
-              const currentPrimaryId = usePlayerStore.getState().caption.selected?.id;
-              const currentSecondaryId = usePlayerStore.getState().caption.secondary?.id;
-              
-              const captionList = usePlayerStore.getState().captionList;
-              
-              if (selectedSubtitleId && currentPrimaryId !== selectedSubtitleId) {
-                const targetPrimary = captionList.find((c) => c.id === selectedSubtitleId);
-                // Can't directly download inside pure WS hook easily, but if it exists locally we could use setCaption. 
-                // However, downloading external captions automatically might be intrusive. We can just set a toast or attempt to select an existing one.
-                // Wait, P-Stream usually automatically loads subtitles if id matches.
-              }
-            }
           }
           break;
         }
