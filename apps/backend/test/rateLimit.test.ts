@@ -22,11 +22,10 @@ describe('checkRateLimit', () => {
 
   it('resets the counter after the window expires', async () => {
     const key = 'test:ip3';
-    // Use a very short window (1ms)
+    // Fill the bucket (limit=1, so first call fills it)
     checkRateLimit(key, 1, 1);
-    checkRateLimit(key, 1, 1); // Should hit limit
 
-    // Wait for the window to expire
+    // Wait for the 1ms window to expire
     await new Promise((resolve) => setTimeout(resolve, 5));
 
     // Should be allowed again after window reset
