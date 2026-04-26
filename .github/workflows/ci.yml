@@ -98,6 +98,15 @@ jobs:
         run: pnpm --filter @p-stream/web build
         env:
           VITE_TMDB_READ_API_KEY: ${{ secrets.VITE_TMDB_READ_API_KEY }}
-          VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL || 'https://p-stream-backend.onrender.com' }}
-          VITE_CORS_PROXY_URL: ${{ secrets.VITE_CORS_PROXY_URL || 'https://p-stream-proxy.onrender.com' }}
-          VITE_M3U8_PROXY_URL: ${{ secrets.VITE_M3U8_PROXY_URL || 'https://p-stream-proxy.onrender.com' }}
+          VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
+          VITE_CORS_PROXY_URL: ${{ secrets.VITE_CORS_PROXY_URL }}
+          VITE_M3U8_PROXY_URL: ${{ secrets.VITE_M3U8_PROXY_URL }}
+          VITE_APP_DOMAIN: "https://p-xtream-app.netlify.app"
+          VITE_PWA_ENABLED: "true"
+          VITE_NORMAL_ROUTER: "true"
+
+      # ── 3. Deploy to Netlify ─────────────────────────────────────────────────
+      - name: Deploy to Netlify
+        run: npx netlify-cli deploy --prod --dir=apps/web/dist --site=${{ secrets.NETLIFY_SITE_ID }}
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
