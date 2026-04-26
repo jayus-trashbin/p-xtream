@@ -20,9 +20,8 @@ services:
       pnpm install --frozen-lockfile --ignore-scripts --filter @p-stream/shared... --filter @p-stream/backend... &&
       mkdir -p apps/backend/.nitro/types &&
       echo '{"compilerOptions":{"forceConsistentCasingInFileNames":true,"strict":false,"noEmit":true,"skipLibCheck":true,"target":"ESNext","module":"ESNext","moduleResolution":"Bundler","allowJs":true,"resolveJsonModule":true,"allowSyntheticDefaultImports":true},"include":["../../**/*"]}' > apps/backend/.nitro/types/tsconfig.json &&
-      cd apps/backend &&
-      npx prisma generate &&
-      pnpm build
+      (cd apps/backend && npx prisma generate) &&
+      pnpm --filter @p-stream/backend run build
 
     startCommand: node apps/backend/.output/server/index.mjs
 
