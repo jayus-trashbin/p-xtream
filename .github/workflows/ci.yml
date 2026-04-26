@@ -128,6 +128,6 @@ jobs:
 
       # ── 3. Deploy to Netlify ─────────────────────────────────────────────────
       - name: Deploy to Netlify
-        run: npx netlify-cli deploy --prod --dir=apps/web/dist --site=${{ secrets.NETLIFY_SITE_ID }}
+        run: cd apps/web && npx netlify-cli deploy --prod --dir=dist --site=${{ secrets.NETLIFY_SITE_ID }}
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
