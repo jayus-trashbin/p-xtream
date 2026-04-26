@@ -13,6 +13,7 @@ import { BlurEllipsis } from "@/pages/layouts/SubPageLayout";
 import { conf } from "@/setup/config";
 import { useBannerSize } from "@/stores/banner";
 import { usePreferencesStore } from "@/stores/preferences";
+import { useVocabularyStore } from "@/stores/vocabulary";
 
 import { BrandPill } from "./BrandPill";
 
@@ -58,6 +59,7 @@ export function Navigation(props: NavigationProps) {
   const enableLowPerformanceMode = usePreferencesStore(
     (s) => s.enableLowPerformanceMode,
   );
+  const vocabularyCount = useVocabularyStore((s) => Object.keys(s.items).length);
 
   return (
     <>
@@ -184,6 +186,21 @@ export function Navigation(props: NavigationProps) {
                     />
                   </a>
                 ))}
+              {vocabularyCount > 0 && (
+                <a
+                  onClick={() => handleClick("/vocabulary")}
+                  rel="noreferrer"
+                  className="text-xl text-white tabbable rounded-full backdrop-blur-lg"
+                  title="Vocabulário"
+                >
+                  <IconPatch
+                    icon={Icons.BOOKMARK}
+                    clickable
+                    downsized
+                    navigation
+                  />
+                </a>
+              )}
               <a
                 onClick={() => openNotifications()}
                 rel="noreferrer"

@@ -34,6 +34,24 @@ export interface PresenceMember {
   joined: number;
 }
 
+export interface HostWsState {
+  userId: string;
+  isPlaying: boolean;
+  isPaused: boolean;
+  time: number;
+  duration: number;
+  lastUpdate: number;
+  content: {
+    title: string;
+    type: string;
+    tmdbId?: number;
+    seasonId?: number;
+    episodeId?: number;
+    seasonNumber?: number;
+    episodeNumber?: number;
+  };
+}
+
 interface WatchPartyStore {
   enabled: boolean;
   // 6-char alphanumeric code (matches backend nanoid format)
@@ -53,6 +71,8 @@ interface WatchPartyStore {
   showLobby: boolean;
   lobbyMembers: LobbyMember[];
   lobbyReady: boolean;
+  // Latest player state received from host via WebSocket
+  hostWsState: HostWsState | null;
 
   enableAsHost(): void;
   enableAsGuest(code: string): void;
@@ -61,6 +81,7 @@ interface WatchPartyStore {
   setShowStatusOverlay(show: boolean): void;
   setTransport(t: "ws" | "polling"): void;
   setWsConnected(c: boolean): void;
+  setHostWsState(s: HostWsState | null): void;
   toggleChat(): void;
   setShowLobby(s: boolean): void;
   setLobbyMembers(m: LobbyMember[]): void;
@@ -109,6 +130,7 @@ export const useWatchPartyStore = create<WatchPartyStore>()(
       showLobby: false,
       lobbyMembers: [],
       lobbyReady: false,
+      hostWsState: null,
 
       enableAsHost: () => {
         resetPlaybackRate();
@@ -151,6 +173,8 @@ export const useWatchPartyStore = create<WatchPartyStore>()(
       setTransport: (t) => set(() => ({ transport: t })),
 
       setWsConnected: (c) => set(() => ({ wsConnected: c })),
+
+      setHostWsState: (s) => set(() => ({ hostWsState: s })),
 
       toggleChat: () => {
         const { showChat, unreadChatCount } = get();
@@ -210,6 +234,7 @@ export const useWatchPartyStore = create<WatchPartyStore>()(
           lobbyMembers: [],
           lobbyReady: false,
           wsConnected: false,
+          hostWsState: null,
         })),
     }),
     {

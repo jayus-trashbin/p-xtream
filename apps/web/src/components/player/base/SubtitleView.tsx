@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import {
   captionIsVisible,
@@ -119,7 +119,7 @@ export function CaptionCue({
             key={token.id}
             className={`${
               token.isWordLike
-                ? "cursor-pointer hover:bg-white/20 hover:text-white rounded transition-colors px-0.5"
+                ? "cursor-pointer hover:bg-white/20 hover:text-white rounded transition-colors px-0.5 pointer-events-auto"
                 : ""
             }`}
             onClick={(e) => {
@@ -229,6 +229,20 @@ export function SubtitleView(props: { controlsShown: boolean }) {
     x: number;
     y: number;
   } | null>(null);
+
+  // Close popover on any click outside a word span (word spans use stopPropagation)
+  useEffect(() => {
+    if (!activeWord) return;
+    let handler: ((e: MouseEvent) => void) | undefined;
+    const t = setTimeout(() => {
+      handler = () => setActiveWord(null);
+      document.addEventListener("click", handler);
+    }, 50);
+    return () => {
+      clearTimeout(t);
+      if (handler) document.removeEventListener("click", handler);
+    };
+  }, [activeWord]);
 
   const styling = useSubtitleStore((s) => s.styling);
   const delay = useSubtitleStore((s) => s.delay);

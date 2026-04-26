@@ -2,7 +2,6 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/buttons/Button";
-import { Heading2, Paragraph } from "@/components/typography/Typography";
 import { useVocabularyStore } from "@/stores/vocabulary";
 
 export function VocabularyReview() {
@@ -24,8 +23,9 @@ export function VocabularyReview() {
   const totalWords = Object.keys(items).length;
 
   const startReview = () => {
-    if (dueItems.length > 0) {
-      setActiveWordId(dueItems[0].id);
+    const first = dueItems[0];
+    if (first) {
+      setActiveWordId(first.id);
       setShowAnswer(false);
     }
   };
@@ -40,8 +40,9 @@ export function VocabularyReview() {
       .filter((item) => item.nextReviewAt <= Date.now() && item.id !== activeWordId)
       .sort((a, b) => a.nextReviewAt - b.nextReviewAt);
 
-    if (nextDue.length > 0) {
-      setActiveWordId(nextDue[0].id);
+    const nextItem = nextDue[0];
+    if (nextItem) {
+      setActiveWordId(nextItem.id);
     } else {
       setActiveWordId(null);
     }
@@ -57,7 +58,7 @@ export function VocabularyReview() {
           <span className="text-xs uppercase tracking-wider text-type-secondary font-bold">
             {word.language}
           </span>
-          <Heading2 className="!text-5xl mt-2">{word.word}</Heading2>
+          <h2 className="text-5xl font-bold text-white mt-2">{word.word}</h2>
           {word.phonetic && (
             <p className="text-type-secondary font-mono mt-1">{word.phonetic}</p>
           )}
@@ -92,7 +93,7 @@ export function VocabularyReview() {
               <Button theme="purple" onClick={() => handleReview(4)}>
                 {t("languageReactor.good", "Bom")}
               </Button>
-              <Button theme="primary" onClick={() => handleReview(5)}>
+              <Button theme="white" onClick={() => handleReview(5)}>
                 {t("languageReactor.easy", "Fácil")}
               </Button>
             </div>
@@ -104,13 +105,15 @@ export function VocabularyReview() {
 
   return (
     <div className="space-y-6">
-      <Heading2>{t("languageReactor.vocabularyTitle", "Meu Vocabulário")}</Heading2>
-      <Paragraph>
+      <h2 className="text-3xl font-bold text-white mt-6">
+        {t("languageReactor.vocabularyTitle", "Meu Vocabulário")}
+      </h2>
+      <p className="text-type-secondary mt-6">
         {t(
           "languageReactor.vocabularyDesc",
           "Revise as palavras que você aprendeu usando o sistema Spaced Repetition.",
         )}
-      </Paragraph>
+      </p>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="bg-video-context-buttons-list p-6 rounded-2xl border border-white/5">

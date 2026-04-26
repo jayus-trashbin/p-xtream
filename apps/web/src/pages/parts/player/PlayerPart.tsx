@@ -16,6 +16,7 @@ import { WatchPartyProvider } from "@/components/player/internals/WatchPartyProv
 import { WatchPartyChat, ChatToggleButton } from "@/components/player/atoms/WatchPartyChat";
 import { WatchPartyReactions } from "@/components/player/atoms/WatchPartyReactions";
 import { WatchPartyLobby } from "@/components/player/atoms/WatchPartyLobby";
+import { LanguageReactorWizard } from "@/components/player/overlays/LanguageReactorWizard";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { PlayerMeta, playerStatus } from "@/stores/player/slices/source";
 import { usePlayerStore } from "@/stores/player/store";
@@ -108,6 +109,7 @@ export function PlayerPart(props: PlayerPartProps) {
       <WatchPartyChat />
       <WatchPartyReactions />
       <WatchPartyLobby />
+      <LanguageReactorWizard />
       <PauseOverlay />
       <Player.BlackOverlay
         show={showTargets && status === playerStatus.PLAYING}

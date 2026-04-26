@@ -3,6 +3,7 @@ import { useCallback, useEffect, useRef } from "react";
 
 import { useBackendUrl } from "@/hooks/auth/useBackendUrl";
 import { useAuthStore } from "@/stores/auth";
+import { usePreferencesStore } from "@/stores/preferences";
 import {
   ChatMessage,
   LobbyMember,
@@ -15,7 +16,7 @@ const MAX_MISSED_PONGS = 2;
 const BACKOFF_CAPS = [1000, 2000, 4000, 8000, 15000] as const;
 
 function getBackoff(attempt: number): number {
-  return BACKOFF_CAPS[Math.min(attempt, BACKOFF_CAPS.length - 1)];
+  return BACKOFF_CAPS[Math.min(attempt, BACKOFF_CAPS.length - 1)] as number;
 }
 
 function toWsUrl(httpUrl: string, roomCode: string, token: string): string {
@@ -33,6 +34,9 @@ export function useWatchPartySocket() {
 
   const backendUrl = useBackendUrl();
   const account = useAuthStore((s) => s.account);
+  const enableWatchPartyWebSocket = usePreferencesStore(
+    (s) => s.enableWatchPartyWebSocket,
+  );
 
   const {
     enabled,
@@ -150,10 +154,26 @@ export function useWatchPartySocket() {
         }
 
         case "player:update": {
-          const pl = event.payload as any;
+          const pl = event.payload as {
+            player: { isPlaying: boolean; isPaused: boolean; time: number; duration: number };
+            content: { title: string; type: string; tmdbId?: number; seasonId?: number; episodeId?: number; seasonNumber?: number; episodeNumber?: number };
+            timestamp?: number;
+          };
           const from = event.from;
-          if (from && pl) {
+          if (from && pl?.player) {
             store.setWsConnected(true);
+            const myId = account?.userId;
+            if (from !== myId) {
+              store.setHostWsState({
+                userId: from,
+                isPlaying: pl.player.isPlaying,
+                isPaused: pl.player.isPaused,
+                time: pl.player.time,
+                duration: pl.player.duration,
+                lastUpdate: pl.timestamp ?? Date.now(),
+                content: pl.content ?? { title: "", type: "movie" },
+              });
+            }
           }
           break;
         }
@@ -191,6 +211,10 @@ export function useWatchPartySocket() {
 
   const connect = useCallback(() => {
     if (!mountedRef.current || !enabled || !roomCode) return;
+    if (!enableWatchPartyWebSocket) {
+      setTransport("polling");
+      return;
+    }
     if (!backendUrl || !account?.token) {
       setTransport("polling");
       return;
@@ -244,6 +268,7 @@ export function useWatchPartySocket() {
   }, [
     enabled,
     roomCode,
+    enableWatchPartyWebSocket,
     backendUrl,
     account?.token,
     handleMessage,

@@ -87,6 +87,7 @@ export function useWatchPartySync(
     enableAsGuest,
     transport,
     wsConnected,
+    hostWsState,
   } = useWatchPartyStore();
 
   // Reset URL parameter checking when watch party is disabled
@@ -294,7 +295,7 @@ export function useWatchPartySync(
     }
   }, [backendUrl, account, roomCode, enabled]);
 
-  // Periodically refresh room data (polling fallback — disabled when WS is active)
+  // Periodically refresh room data (polling fallback) or build roomUsers from WS state
   useEffect(() => {
     const syncState = syncStateRef.current;
 
@@ -308,15 +309,42 @@ export function useWatchPartySync(
       return;
     }
 
-    // Skip polling when WebSocket transport is active and connected
+    // When WebSocket is active, derive host state from received player:update messages
     if (transport === "ws" && wsConnected) {
+      if (hostWsState) {
+        const wsUser: RoomUser = {
+          userId: hostWsState.userId,
+          isHost: true,
+          lastUpdate: hostWsState.lastUpdate,
+          player: {
+            isPlaying: hostWsState.isPlaying,
+            isPaused: hostWsState.isPaused,
+            time: hostWsState.time,
+            duration: hostWsState.duration,
+          },
+          content: {
+            title: hostWsState.content.title,
+            type: hostWsState.content.type,
+            ...(hostWsState.content.tmdbId !== undefined ? { tmdbId: hostWsState.content.tmdbId } : {}),
+            ...(hostWsState.content.seasonId !== undefined ? { seasonId: hostWsState.content.seasonId } : {}),
+            ...(hostWsState.content.episodeId !== undefined ? { episodeId: hostWsState.content.episodeId } : {}),
+            ...(hostWsState.content.seasonNumber !== undefined ? { seasonNumber: hostWsState.content.seasonNumber } : {}),
+            ...(hostWsState.content.episodeNumber !== undefined ? { episodeNumber: hostWsState.content.episodeNumber } : {}),
+          },
+        };
+        setRoomUsers([wsUser]);
+        if (syncState.lastUserCount !== 1) {
+          setUserCount(1);
+          syncState.lastUserCount = 1;
+        }
+        syncState.prevRoomUsers = [wsUser];
+      }
       return;
     }
 
-    // Initial fetch
+    // HTTP polling fallback — used when WebSocket is unavailable
     refreshRoomData();
 
-    // Polling at 1s — used when WebSocket is unavailable
     const interval = setInterval(refreshRoomData, 1000);
 
     return () => {
@@ -326,7 +354,7 @@ export function useWatchPartySync(
       syncState.previousHostPlaying = null;
       syncState.previousHostTime = null;
     };
-  }, [enabled, roomCode, refreshRoomData, transport, wsConnected]);
+  }, [enabled, roomCode, refreshRoomData, transport, wsConnected, hostWsState]);
 
   return {
     roomUsers,

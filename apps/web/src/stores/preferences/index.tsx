@@ -26,6 +26,7 @@ export interface PreferencesStore {
   embedOrder: string[];
   enableEmbedOrder: boolean;
   proxyTmdb: boolean;
+  enableWatchPartyWebSocket: boolean;
   febboxKey: string | null;
   febboxUseMp4: boolean;
   debridToken: string | null;
@@ -62,6 +63,7 @@ export interface PreferencesStore {
   setEmbedOrder(v: string[]): void;
   setEnableEmbedOrder(v: boolean): void;
   setProxyTmdb(v: boolean): void;
+  setEnableWatchPartyWebSocket(v: boolean): void;
   setFebboxKey(v: string | null): void;
   setFebboxUseMp4(v: boolean): void;
   setdebridToken(v: string | null): void;
@@ -102,6 +104,7 @@ export const usePreferencesStore = create(
       embedOrder: [],
       enableEmbedOrder: false,
       proxyTmdb: false,
+      enableWatchPartyWebSocket: true,
       febboxKey: null,
       febboxUseMp4: false,
       debridToken: null,
@@ -207,6 +210,11 @@ export const usePreferencesStore = create(
       setProxyTmdb(v) {
         set((s) => {
           s.proxyTmdb = v;
+        });
+      },
+      setEnableWatchPartyWebSocket(v) {
+        set((s) => {
+          s.enableWatchPartyWebSocket = v;
         });
       },
       setFebboxKey(v) {

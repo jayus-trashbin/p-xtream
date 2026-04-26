@@ -46,3 +46,6 @@ generated/
 
 # Antigravity Kit
 .agent/
+
+# Local Netlify folder
+.netlify

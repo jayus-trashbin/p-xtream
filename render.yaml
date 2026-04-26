@@ -1,0 +1,102 @@
+# ── P-Stream — Render.com Blueprint ────────────────────────────────────────────
+# Deploy: https://dashboard.render.com → New → Blueprint → connect this repo
+# Docs:   https://render.com/docs/blueprint-spec
+#
+# NOTE: buildCommand runs from repo root (no rootDir set) so pnpm workspace
+#       context is available for cross-package installs.
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+  # ── Backend API (Nitro + Prisma + PostgreSQL) ─────────────────────────────
+  - type: web
+    name: p-stream-backend
+    runtime: node
+    region: ohio            # us-east-2 — closest to Supabase us-east-1
+    plan: free
+
+    # No rootDir — runs from repo root so pnpm workspace can resolve all deps
+    buildCommand: >-
+      npm install -g pnpm@9 &&
+      pnpm install --frozen-lockfile --filter @p-stream/shared... --filter @p-stream/backend... &&
+      cd apps/backend &&
+      npx prisma generate &&
+      pnpm build
+
+    startCommand: node apps/backend/.output/server/index.mjs
+
+    healthCheckPath: /healthcheck
+
+    buildFilter:
+      paths:
+        - apps/backend/**
+        - packages/shared/**
+        - pnpm-lock.yaml
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      # Supabase PostgreSQL connection string — set manually in Render dashboard
+      - key: DATABASE_URL
+        sync: false
+
+      # HS256 secret — MUST be same value as JWT_SECRET in proxy service
+      - key: CRYPTO_SECRET
+        sync: false
+
+      # TMDB server-side key (never expose in frontend)
+      - key: TMDB_API_KEY
+        sync: false
+
+      # Comma-separated CORS origins — set to your Netlify URL
+      # e.g. "https://p-stream.netlify.app"
+      - key: ALLOWED_ORIGINS
+        sync: false
+
+      # Optional features
+      - key: TRAKT_CLIENT_ID
+        sync: false
+      - key: TRAKT_SECRET_ID
+        sync: false
+      - key: TURNSTILE_SECRET
+        sync: false
+      - key: METRICS_TOKEN
+        sync: false
+
+  # ── CORS / M3U8 Proxy (Nitro) ────────────────────────────────────────────
+  - type: web
+    name: p-stream-proxy
+    runtime: node
+    region: ohio
+    plan: free
+
+    buildCommand: >-
+      npm install -g pnpm@9 &&
+      pnpm install --frozen-lockfile --filter @p-stream/proxy... &&
+      cd apps/proxy &&
+      pnpm build
+
+    startCommand: node apps/proxy/.output/server/index.mjs
+
+    healthCheckPath: /health
+
+    buildFilter:
+      paths:
+        - apps/proxy/**
+        - pnpm-lock.yaml
+
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      # Must match CRYPTO_SECRET from backend service above
+      - key: JWT_SECRET
+        sync: false
+
+      # M3U8 cache size (default 512MB, reduced for free tier)
+      - key: CACHE_MAX_MEMORY_MB
+        value: "256"
+
+      # Rate limiting
+      - key: RATE_LIMIT_RPM
+        value: "100"

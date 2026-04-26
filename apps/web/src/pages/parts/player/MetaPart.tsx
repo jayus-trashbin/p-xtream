@@ -147,6 +147,107 @@ export function MetaPart(props: MetaPartProps) {
     );
   }
 
+  if (error && error.message === "tmdb-invalid-api-key") {
+    return (
+      <ErrorLayout>
+        <ErrorContainer>
+          <IconPill icon={Icons.WAND}>
+            {t("player.metadata.failed.badge")}
+          </IconPill>
+          <Title>Invalid TMDB API key</Title>
+          <Paragraph>
+            The TMDB API key is invalid or expired. Check the{" "}
+            <code>VITE_TMDB_READ_API_KEY</code> value in your{" "}
+            <code>apps/web/.env</code> file.
+          </Paragraph>
+          <Button
+            href="/"
+            theme="purple"
+            padding="md:px-12 p-2.5"
+            className="mt-6"
+          >
+            {t("player.metadata.failed.homeButton")}
+          </Button>
+        </ErrorContainer>
+      </ErrorLayout>
+    );
+  }
+
+  if (error && error.message === "tmdb-rate-limited") {
+    return (
+      <ErrorLayout>
+        <ErrorContainer>
+          <IconPill icon={Icons.WAND}>
+            {t("player.metadata.failed.badge")}
+          </IconPill>
+          <Title>TMDB rate limit reached</Title>
+          <Paragraph>
+            Too many requests were sent to TMDB at once. Wait a moment and try
+            again.
+          </Paragraph>
+          <Button
+            href="/"
+            theme="purple"
+            padding="md:px-12 p-2.5"
+            className="mt-6"
+          >
+            {t("player.metadata.failed.homeButton")}
+          </Button>
+        </ErrorContainer>
+      </ErrorLayout>
+    );
+  }
+
+  if (error && error.message === "tmdb-timeout") {
+    return (
+      <ErrorLayout>
+        <ErrorContainer>
+          <IconPill icon={Icons.WAND}>
+            {t("player.metadata.failed.badge")}
+          </IconPill>
+          <Title>TMDB demorou demais para responder</Title>
+          <Paragraph>
+            A conexão com o TMDB expirou. Verifique sua internet ou ative um
+            proxy CORS nas configurações.
+          </Paragraph>
+          <Button
+            href="/"
+            theme="purple"
+            padding="md:px-12 p-2.5"
+            className="mt-6"
+          >
+            {t("player.metadata.failed.homeButton")}
+          </Button>
+        </ErrorContainer>
+      </ErrorLayout>
+    );
+  }
+
+  if (error && error.message === "tmdb-network-error") {
+    return (
+      <ErrorLayout>
+        <ErrorContainer>
+          <IconPill icon={Icons.WAND}>
+            {t("player.metadata.failed.badge")}
+          </IconPill>
+          <Title>Não foi possível conectar ao TMDB</Title>
+          <Paragraph>
+            O TMDB está inacessível nesta rede. Verifique sua internet ou
+            ative a opção &quot;Usar proxy para TMDB&quot; nas configurações.
+          </Paragraph>
+          <Button
+            href="/"
+            theme="purple"
+            padding="md:px-12 p-2.5"
+            className="mt-6"
+          >
+            {t("player.metadata.failed.homeButton")}
+          </Button>
+        </ErrorContainer>
+      </ErrorLayout>
+    );
+  }
+
   if (error) {
     return (
       <ErrorLayout>

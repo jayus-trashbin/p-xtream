@@ -89,6 +89,8 @@ export interface SubtitleStore {
   setAutoPauseOnSubtitle(enabled: boolean): void;
   setTtsProvider(provider: "webspeech" | "google"): void;
   setDictionaryProvider(provider: "wiktionary" | "google" | "none"): void;
+  showLanguageReactorWizard: boolean;
+  setShowLanguageReactorWizard(show: boolean): void;
 
   updateStyling(newStyling: Partial<SubtitleStyling>): void;
   resetStyling(): void;
@@ -150,6 +152,7 @@ export const useSubtitleStore = create(
       ttsProvider: "webspeech",
       dictionaryProvider: "wiktionary",
       showDelayIndicator: false,
+      showLanguageReactorWizard: false,
       resetSubtitleSpecificSettings() {
         set((s) => {
           s.delay = 0;
@@ -285,6 +288,7 @@ export const useSubtitleStore = create(
       setAutoPauseOnSubtitle(enabled) { set((s) => { s.autoPauseOnSubtitle = enabled; }); },
       setTtsProvider(provider) { set((s) => { s.ttsProvider = provider; }); },
       setDictionaryProvider(provider) { set((s) => { s.dictionaryProvider = provider; }); },
+      setShowLanguageReactorWizard(show) { set((s) => { s.showLanguageReactorWizard = show; }); },
     })),
     {
       name: "__MW::subtitles",

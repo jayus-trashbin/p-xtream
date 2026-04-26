@@ -71,8 +71,14 @@ export default defineConfig(({ mode }) => {
             "Watch your favorite shows and movies for free with no ads ever! (っ'ヮ'c)",
           theme_color: "#000000",
           background_color: "#000000",
+          // display_override: prefer fullscreen on TV, fall back to standalone
           display: "standalone",
+          display_override: ["fullscreen", "standalone", "minimal-ui"],
           start_url: "/",
+          // orientation: "any" lets the app rotate freely on mobile and fill TV screens
+          orientation: "any",
+          // categories hint for app stores / TV launchers
+          categories: ["entertainment", "video"],
           icons: [
             {
               src: "android-chrome-192x192.png",
@@ -97,6 +103,14 @@ export default defineConfig(({ mode }) => {
               sizes: "512x512",
               type: "image/png",
               purpose: "maskable",
+            },
+          ],
+          screenshots: [
+            {
+              src: "embed-preview.png",
+              type: "image/png",
+              sizes: "1280x720",
+              form_factor: "wide",
             },
           ],
         },

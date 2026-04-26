@@ -44,6 +44,7 @@ import { OnboardingProxyPage } from "@/pages/onboarding/OnboardingProxy";
 import { PasPage } from "@/pages/Pas"; // TODO Phase 3: remove after verifying no external links target /pas
 import { RegisterPage } from "@/pages/Register";
 import { SupportPage } from "@/pages/Support";
+import { VocabularyPage } from "@/pages/VocabularyPage";
 import { WatchHistory } from "@/pages/watchHistory/WatchHistory";
 import { Layout } from "@/setup/Layout";
 import { useHistoryListener } from "@/stores/history";
@@ -241,6 +242,8 @@ function App() {
           />
           {/* Bookmarks page */}
           <Route path="/bookmarks" element={<AllBookmarks />} />
+          {/* Vocabulary page */}
+          <Route path="/vocabulary" element={<VocabularyPage />} />
           {/* Watch History page */}
           <Route path="/watch-history" element={<WatchHistory />} />
           {/* Settings page */}

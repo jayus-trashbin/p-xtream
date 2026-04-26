@@ -26,6 +26,7 @@ import { SettingsMenu } from "./settings/SettingsMenu";
 import { SkipSegmentsView } from "./settings/SkipSegmentsView";
 import { TranscriptView } from "./settings/TranscriptView";
 import { TranslateSubtitleView } from "./settings/TranslateSubtitleView";
+import { LanguageReactorView } from "./settings/LanguageReactorView";
 import { WatchPartyView } from "./settings/WatchPartyView";
 
 function SettingsOverlay({ id }: { id: string }) {
@@ -194,6 +195,11 @@ function SettingsOverlay({ id }: { id: string }) {
         <OverlayPage id={id} path="/watchparty" width={343} height={496}>
           <Menu.CardWithScrollable>
             <WatchPartyView id={id} />
+          </Menu.CardWithScrollable>
+        </OverlayPage>
+        <OverlayPage id={id} path="/language-reactor" width={343} height={496}>
+          <Menu.CardWithScrollable>
+            <LanguageReactorView id={id} />
           </Menu.CardWithScrollable>
         </OverlayPage>
       </OverlayRouter>

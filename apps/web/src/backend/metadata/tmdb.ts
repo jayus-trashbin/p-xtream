@@ -273,15 +273,57 @@ export async function get<T>(url: string, params?: object): Promise<T> {
         headers: tmdbHeaders,
         baseURL: tmdbBaseUrl1,
         params: allParams,
-        signal: abortOnTimeout(5000),
+        signal: abortOnTimeout(10000),
       });
-    } catch (err) {
-      result = await mwFetch<T>(encodeURI(url), {
-        headers: tmdbHeaders,
-        baseURL: tmdbBaseUrl2,
-        params: allParams,
-        signal: abortOnTimeout(30000),
-      });
+    } catch (firstErr) {
+      // Check if first attempt already tells us the key is bad — no point retrying
+      const firstStatus =
+        (firstErr as any)?.response?.status ??
+        (firstErr as any)?.statusCode ??
+        (firstErr as any)?.status;
+      if (firstStatus === 401 || firstStatus === 403)
+        throw new Error("tmdb-invalid-api-key");
+      if (firstStatus === 429) throw new Error("tmdb-rate-limited");
+
+      try {
+        result = await mwFetch<T>(encodeURI(url), {
+          headers: tmdbHeaders,
+          baseURL: tmdbBaseUrl2,
+          params: allParams,
+          signal: abortOnTimeout(30000),
+        });
+      } catch (err) {
+        const status =
+          (err as any)?.response?.status ??
+          (err as any)?.statusCode ??
+          (err as any)?.status;
+        if (status === 401 || status === 403)
+          throw new Error("tmdb-invalid-api-key");
+        if (status === 429) throw new Error("tmdb-rate-limited");
+
+        const errName = (err as any)?.name ?? "";
+        if (errName === "AbortError") throw new Error("tmdb-timeout");
+
+        // Both direct endpoints failed — attempt proxy as last resort
+        if (proxy) {
+          try {
+            result = await mwFetch<T>(
+              `/?destination=${encodeURIComponent(fullUrl.toString())}`,
+              {
+                headers: tmdbHeaders,
+                baseURL: proxy,
+                signal: abortOnTimeout(10000),
+              },
+            );
+          } catch {
+            console.error("[TMDB] All endpoints (direct + proxy) failed.");
+            throw new Error("tmdb-network-error");
+          }
+        } else {
+          console.error("[TMDB] Both direct endpoints failed. Last error:", err);
+          throw new Error("tmdb-network-error");
+        }
+      }
     }
   }
 

@@ -138,7 +138,7 @@ export function SettingsMenu({ id }: { id: string }) {
         <Menu.Link
           clickable
           onClick={() => router.navigate("/language-reactor")}
-          rightSide={<span className="text-xl">🎓</span>}
+          rightSide={<Icon className="text-xl" icon={Icons.TRANSLATE} />}
         >
           {t("player.menus.languageReactor.title", "Language Reactor")}
         </Menu.Link>

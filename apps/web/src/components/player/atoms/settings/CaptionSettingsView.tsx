@@ -4,8 +4,8 @@ import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/buttons/Button";
 import { Toggle } from "@/components/buttons/Toggle";
-import { Dropdown } from "@/components/form/Dropdown";
 import { Icon, Icons } from "@/components/Icon";
+import { Dropdown } from "@/components/form/Dropdown";
 import { Menu } from "@/components/player/internals/ContextMenu";
 import { useOverlayRouter } from "@/hooks/useOverlayRouter";
 import { useProgressBar } from "@/hooks/useProgressBar";
@@ -411,6 +411,8 @@ export function CaptionSettingsView({
   const updateStyling = subtitleStore.updateStyling;
   const setCaptionAsTrack = usePlayerStore((s) => s.setCaptionAsTrack);
   const enableNativeSubtitles = preferencesStore.enableNativeSubtitles;
+  const setShowLanguageReactorWizard = subtitleStore.setShowLanguageReactorWizard;
+  const languageReactorEnabled = subtitleStore.languageReactorEnabled;
 
   useEffect(() => {
     subtitleStore.updateStyling(styling);
@@ -711,6 +713,38 @@ export function CaptionSettingsView({
             </span>
           </>
         )}
+        <Menu.Divider />
+        <div className="flex items-center justify-between">
+          <div>
+            <Menu.FieldTitle>
+              {t(
+                "languageReactor.wizard.menuTitle",
+                "Modo Language Reactor",
+              )}
+            </Menu.FieldTitle>
+            <p className="text-xs text-type-secondary mt-0.5">
+              {languageReactorEnabled
+                ? t(
+                    "languageReactor.wizard.menuEnabledDesc",
+                    "Legenda dupla e palavras clicáveis ativados.",
+                  )
+                : t(
+                    "languageReactor.wizard.menuDesc",
+                    "Aprenda idiomas com legendas duplas e palavras clicáveis.",
+                  )}
+            </p>
+          </div>
+          <Button
+            theme={languageReactorEnabled ? "secondary" : "purple"}
+            padding="md:px-4 p-2"
+            onClick={() => setShowLanguageReactorWizard(true)}
+          >
+            <Icon icon={Icons.WAND} className="mr-1.5" />
+            {languageReactorEnabled
+              ? t("languageReactor.wizard.reconfigure", "Reconfigurar")
+              : t("languageReactor.wizard.activate", "Ativar")}
+          </Button>
+        </div>
       </Menu.Section>
     </>
   );

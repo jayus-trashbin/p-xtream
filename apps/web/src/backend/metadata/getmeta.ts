@@ -75,7 +75,7 @@ export async function getMetaFromId(
   id: string,
   seasonId?: string,
 ): Promise<DetailedMeta | null> {
-  const details = await getMediaDetails(id, mediaTypeToTMDB(type));
+  const details = await getMediaDetails(id, mediaTypeToTMDB(type), false);
 
   if (!details) return null;
 
@@ -195,7 +195,7 @@ export async function convertLegacyUrl(
     .join("");
 
   if (isLegacyMediaType(url)) {
-    const details = await getMediaDetails(id, TMDBContentTypes.TV);
+    const details = await getMediaDetails(id, TMDBContentTypes.TV, false);
     return `/media/${TMDBIdToUrlId(
       MWMediaType.SERIES,
       details.id.toString(),

@@ -1,0 +1,59 @@
+# ── P-Stream Web — Netlify Deploy Config ──────────────────────────────────────
+# Monorepo: root context, builds apps/web
+# ──────────────────────────────────────────────────────────────────────────────
+
+[build]
+  # Build runs from repo root so pnpm workspace is available
+  command = "npm install -g pnpm@9 && pnpm install --frozen-lockfile --filter @p-stream/providers... --filter @p-stream/web... && pnpm --filter @p-stream/providers build && pnpm --filter @p-stream/web build"
+  publish = "apps/web/dist"
+
+[build.environment]
+  NODE_VERSION      = "20"
+  PNPM_VERSION      = "9"
+  CI                = "true"
+  # Enable PWA service worker for installability on mobile & TV
+  VITE_PWA_ENABLED  = "true"
+  # Hash-free routing (Netlify redirect handles SPA fallback)
+  VITE_NORMAL_ROUTER = "true"
+
+# ── SPA Fallback (React Router) ───────────────────────────────────────────────
+[[redirects]]
+  from   = "/*"
+  to     = "/index.html"
+  status = 200
+
+# ── Security + Cross-Platform Headers ────────────────────────────────────────
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options           = "SAMEORIGIN"
+    X-Content-Type-Options    = "nosniff"
+    X-XSS-Protection          = "1; mode=block"
+    Referrer-Policy           = "strict-origin-when-cross-origin"
+    Permissions-Policy        = "camera=(), microphone=(), geolocation=()"
+    # Allow fullscreen API for TV/mobile video player
+    Feature-Policy            = "fullscreen *"
+
+# ── Immutable Cache for Vite Hashed Assets ────────────────────────────────────
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# ── Locale JSON — 7 day cache ─────────────────────────────────────────────────
+[[headers]]
+  for = "/locales/*"
+  [headers.values]
+    Cache-Control = "public, max-age=604800, must-revalidate"
+
+# ── PWA Service Worker — never cache ──────────────────────────────────────────
+[[headers]]
+  for = "/sw.js"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/manifest.webmanifest"
+  [headers.values]
+    Content-Type  = "application/manifest+json"
+    Cache-Control = "no-cache"
